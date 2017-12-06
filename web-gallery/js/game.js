@@ -10,7 +10,7 @@ Game.run = function(canvas) {
 }.bind(Game);
 
 Game.draw = function() {
-  this.ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+  this.ctx.fillStyle = 'rgba(0, 0, 0, 1)';
   this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
   if (this.currentRoom != null && this.currentRoom.ready) {
     this.currentRoom.draw();
@@ -20,15 +20,19 @@ Game.draw = function() {
 Game.tick = function(elapsed) {
   window.requestAnimationFrame(this.tick);
   var delta = (elapsed - this._previousElapsed) / 1000.0;
-    delta = Math.min(delta, 0.25); // maximum delta of 250 ms
-    this._previousElapsed = elapsed;
+  delta = Math.min(delta, 0.25); // maximum delta of 250 ms
+  this._previousElapsed = elapsed;
+
+  if (this.currentRoom != null && this.currentRoom.ready) {
+    this.currentRoom.tick(delta);
+  }
 
   this.draw();
 }.bind(Game);
 
 Game.setMap = function() {
-  var matrix = [[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]];
-  this.currentRoom = new Room(4, 4, matrix, this);
+  var matrix = [[0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]];
+  this.currentRoom = new Room(9, 13, matrix, this);
 
   this.currentRoom.prepareRoom().then(function () {
     console.log("ok");
@@ -39,7 +43,9 @@ Game.setMap = function() {
 }.bind(Game);
 
 Game.onMouseMove = function(x, y, isDrag) {
-
+  if (this.currentRoom != null && this.currentRoom.ready) {
+    this.currentRoom.onMouseMove(x, y, isDrag);
+  }
 }.bind(Game);
 
 Game.onMouseClick = function(x, y) {

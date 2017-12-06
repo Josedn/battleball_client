@@ -9,8 +9,8 @@ function Camera(room) {
 Camera.prototype.reset = function() {
   this.width = this.room.game.canvas.width;
   this.height = this.room.game.canvas.height;
-  this.x = (this.width - Room.TILE_W) / 2;
-  this.y = (this.height - (Room.TILE_H * this.room.rows)) / 2;
+  this.x = (this.width - (Room.TILE_H * (this.room.cols - this.room.rows + 2))) / 2;
+  this.y = (this.height - (Room.TILE_H * this.room.cols)) / 2;
 };
 
 function Room(cols, rows, heightmap, game) {
@@ -19,6 +19,8 @@ function Room(cols, rows, heightmap, game) {
     this.heightmap = heightmap;
     this.game = game;
     this.ready = false;
+    this.selectedScreenX = 0;
+    this.selectedScreenY = 0;
     this.sprites = new Sprites();
     this.camera = new Camera(this);
 }
@@ -40,6 +42,10 @@ Room.prototype.prepareRoom = function() {
     }.bind(this));
 
   }.bind(this));
+};
+
+Room.prototype.isValidTile = function(x, y) {
+  return (x >= 0 && x < this.cols && y >= 0 && y < this.rows && this.heightmap[x][y] != 0);
 };
 
 Room.prototype.onResize = function() {
@@ -67,14 +73,47 @@ Room.prototype.drawFloor = function() {
       var tile = this.heightmap[i][j];
       // Draw the represented image number, at the desired X & Y coordinates followed by the graphic width and height.
       if (tile == 1) {
-        ctx.drawImage(this.sprites.getImage('room_tile'), (i - j) * Room.TILE_H + offsetX, (i + j) * Room.TILE_H / 2 + offsetY);
-
+        ctx.drawImage(this.sprites.getImage('room_tile'), (i - j) * (Room.TILE_W / 2) + offsetX, (i + j) * (Room.TILE_H / 2) + offsetY);
       }
     }
   }
+};
 
+Room.prototype.drawSelectedTile = function() {
+  var ctx = this.game.ctx;
+
+  var offsetX = this.camera.x;
+  var offsetY = this.camera.y;
+
+  var xminusy = (this.selectedScreenX - 32 - offsetX) / Room.TILE_H;
+  var xplusy =  (this.selectedScreenY - offsetY) * 2 / Room.TILE_H;
+
+  var x = Math.floor((xminusy + xplusy) / 2);
+  var y = Math.floor((xplusy - xminusy) / 2);
+
+  if (this.isValidTile(x, y)) {
+    ctx.drawImage(this.sprites.getImage('selected_tile'), (x - y) * (Room.TILE_W / 2) + offsetX, (x + y) * (Room.TILE_H / 2) + offsetY);
+  }
 };
 
 Room.prototype.draw = function() {
   this.drawFloor();
+  this.drawSelectedTile();
+};
+
+Room.prototype.tick = function(delta) {
+
+};
+
+Room.prototype.onMouseMove = function(x, y, isDrag) {
+  if (isDrag) //Move camera
+  {
+    var diffX = this.selectedScreenX - x;
+    var diffY = this.selectedScreenY - y;
+    this.camera.x -= diffX;
+    this.camera.y -= diffY;
+  }
+
+  this.selectedScreenX = x;
+  this.selectedScreenY = y;
 };

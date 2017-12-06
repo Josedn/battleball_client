@@ -7,15 +7,15 @@ Game.run = function(canvas) {
 
   this.onResize();
   window.requestAnimationFrame(this.tick);
-};
+}.bind(Game);
 
 Game.draw = function() {
   this.ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-  this.ctx.fillRect(0, 0, this.width, this.height);
-  if (this.currentRoom != null) {
+  this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+  if (this.currentRoom != null && this.currentRoom.ready) {
     this.currentRoom.draw();
   }
-};
+}.bind(Game);
 
 Game.tick = function(elapsed) {
   window.requestAnimationFrame(this.tick);
@@ -28,7 +28,7 @@ Game.tick = function(elapsed) {
 
 Game.setMap = function() {
   var matrix = [[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]];
-  this.currentRoom = new Room(4, 4, matrix, this.ctx);
+  this.currentRoom = new Room(4, 4, matrix, this);
 
   this.currentRoom.prepareRoom().then(function () {
     console.log("ok");
@@ -40,16 +40,19 @@ Game.setMap = function() {
 
 Game.onMouseMove = function(x, y, isDrag) {
 
-};
+}.bind(Game);
 
 Game.onMouseClick = function(x, y) {
 
-};
+}.bind(Game);
 
 Game.onResize = function() {
-  this.width = this.canvas.width = window.innerWidth;
-  this.height = this.canvas.height = window.innerHeight;
-};
+  this.canvas.width = window.innerWidth;
+  this.canvas.height = window.innerHeight;
+  if (this.currentRoom != null) {
+    this.currentRoom.onResize();
+  }
+}.bind(Game);
 
 window.onload = function () {
   var canvas = document.querySelector('canvas');

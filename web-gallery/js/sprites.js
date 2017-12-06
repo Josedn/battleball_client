@@ -1,8 +1,8 @@
+Sprites.LOCAL_RESOURCES_URL = "./web-gallery/assets/";
+
 function Sprites() {
   this.images = {};
 }
-
-Sprites.LOCAL_RESOURCES_URL = "./web-gallery/assets/";
 
 Sprites.prototype.loadImage = function (key, src) {
     var img = new Image();

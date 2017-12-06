@@ -19,8 +19,8 @@ Game.draw = function() {
 
 Game.tick = function(elapsed) {
   window.requestAnimationFrame(this.tick);
-  var delta = (elapsed - this._previousElapsed) / 1000.0;
-  delta = Math.min(delta, 0.25); // maximum delta of 250 ms
+  var delta = (elapsed - this._previousElapsed);
+  //delta = Math.min(delta, 0.25); // maximum delta of 250 ms
   this._previousElapsed = elapsed;
 
   if (this.currentRoom != null && this.currentRoom.ready) {

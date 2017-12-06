@@ -32,6 +32,24 @@ Sprites.prototype.loadSimpleAvatar = function (key, look, direction) {
 };
 
 Sprites.prototype.loadWalkingAvatar = function (key, look, direction, walkFrame) {
-  var totalUrl = Sprites.EXTERNAL_IMAGER_URL + look + '&direction=' + direction + '&head_direction=' + direction + '&action=wlk&frame=' + (walkFrame-1);
+  var totalUrl = Sprites.EXTERNAL_IMAGER_URL + look + '&direction=' + direction + '&head_direction=' + direction + '&action=wlk&frame=' + (walkFrame);
   return this.loadImage(key, totalUrl);
 };
+
+Sprites.prototype.loadAllSimpleAvatar = function (key, look) {
+  var p = [];
+  for (var i = 0; i <= 7; i++) {
+      p.push(this.loadSimpleAvatar(key + "_" + i, look, i));
+  }
+  return Promise.all(p);
+}
+
+Sprites.prototype.loadAllWalkingAvatar = function (key, look) {
+  var p = [];
+  for (var i = 0; i <= 7; i++) {
+    for (var j = 0; j <= 3; j++) {
+      p.push(this.loadWalkingAvatar(key + "_" + i + "_" + j, look, i, j));
+    }
+  }
+  return Promise.all(p);
+}

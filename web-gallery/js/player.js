@@ -7,9 +7,11 @@ function Player(id, x, y, z, rot, name, look)
   this.rot = rot;
   this.name = name;
   this.look = look;
-  this.targetX = x;
-  this.targetY = y;
+  this.targetX = x + 1;
+  this.targetY = y + 1;
   this.ready = false;
+  this.elapsedTime = 0;
+  this.walkFrame = 0;
   this.sprites = new Sprites();
 }
 
@@ -34,20 +36,36 @@ Player.prototype.prepare = function() {
 
 Player.prototype.loadSprites = function() {
   return [
-    this.sprites.loadSimpleAvatar('simple_0', this.look, 0),
-    this.sprites.loadSimpleAvatar('simple_1', this.look, 1),
-    this.sprites.loadSimpleAvatar('simple_2', this.look, 2),
-    this.sprites.loadSimpleAvatar('simple_3', this.look, 3),
-    this.sprites.loadSimpleAvatar('simple_4', this.look, 4),
-    this.sprites.loadSimpleAvatar('simple_5', this.look, 5),
-    this.sprites.loadSimpleAvatar('simple_6', this.look, 6),
-    this.sprites.loadSimpleAvatar('simple_7', this.look, 7)
+    this.sprites.loadAllSimpleAvatar("simple", this.look),
+    this.sprites.loadAllWalkingAvatar("walking", this.look)
   ];
 };
 
+Player.prototype.isWalking = function() {
+  return (this.x != this.targetX || this.y != this.targetY);
+};
+
 Player.prototype.currentSprite = function() {
+  if (this.isWalking()) {
+    return this.sprites.getImage('walking_' + this.rot + "_" + this.walkFrame);
+  }
   return this.sprites.getImage('simple_' + this.rot);
 };
+
+Player.prototype.nextWalkFrame = function() {
+  this.walkFrame++;
+  if (this.walkFrame >= 4) {
+    this.walkFrame = 0;
+  }
+}
+
+Player.prototype.tick = function(delta) {
+  this.elapsedTime += delta;
+  if (this.elapsedTime >= 125) {
+    this.nextWalkFrame();
+    this.elapsedTime = 0;
+  }
+}
 
 Player.prototype.draw = function(finalX, finalY) {
 

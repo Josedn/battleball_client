@@ -14,24 +14,24 @@ Camera.prototype.reset = function() {
 };
 
 function Room(cols, rows, doorX, doorY, heightmap, game) {
-    this.cols = cols;
-    this.rows = rows;
-    this.heightmap = heightmap;
-    this.doorX = doorX;
-    this.doorY = doorY;
-    this.game = game;
-    this.ready = false;
-    this.selectedScreenX = 0;
-    this.selectedScreenY = 0;
-    this.players = {};
-    this.sprites = new Sprites();
-    this.camera = new Camera(this);
-    this.player = new Player(0, 4, 4, 0, 2, "Jose", "hd-190-10.lg-3023-1408.ch-215-91.hr-893-45");
-    this.player.prepare();
+  this.cols = cols;
+  this.rows = rows;
+  this.heightmap = heightmap;
+  this.doorX = doorX;
+  this.doorY = doorY;
+  this.game = game;
+  this.ready = false;
+  this.selectedScreenX = 0;
+  this.selectedScreenY = 0;
+  this.players = {};
+  this.sprites = new Sprites();
+  this.camera = new Camera(this);
+  this.player = new Player(0, 4, 4, 0, 4, "Jose", "hd-190-10.lg-3023-1408.ch-215-91.hr-893-45");
+  this.player.prepare();
 }
 
 Room.prototype.getPlayer = function(id) {
-    return (id in this.players) ? this.players[id] : null;
+  return (id in this.players) ? this.players[id] : null;
 };
 
 Room.prototype.addPlayer = function(id, x, y, rot, name, look) {
@@ -184,7 +184,7 @@ Room.prototype.draw = function() {
 };
 
 Room.prototype.tick = function(delta) {
-
+  this.player.tick(delta);
 };
 
 Room.prototype.onMouseMove = function(x, y, isDrag) {

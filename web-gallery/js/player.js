@@ -1,8 +1,9 @@
-function Player(id, x, y, rot, name, look)
+function Player(id, x, y, z, rot, name, look)
 {
   this.id = id;
   this.x = x;
   this.y = y;
+  this.z = z;
   this.rot = rot;
   this.name = name;
   this.look = look;

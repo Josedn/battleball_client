@@ -26,7 +26,7 @@ function Room(cols, rows, doorX, doorY, heightmap, game) {
     this.players = {};
     this.sprites = new Sprites();
     this.camera = new Camera(this);
-    this.player = new Player(0, 4, 4, 2, "Jose", "hd-190-10.lg-3023-1408.ch-215-91.hr-893-45");
+    this.player = new Player(0, 4, 4, 0, 2, "Jose", "hd-190-10.lg-3023-1408.ch-215-91.hr-893-45");
     this.player.prepare();
 }
 
@@ -125,8 +125,8 @@ Room.prototype.drawFloor = function() {
     for (var j = 0; j < this.rows; j++) {
       var tile = this.heightmap[i][j];
       // Draw the represented image number, at the desired X & Y coordinates followed by the graphic width and height.
-      if (tile == 1) {
-        ctx.drawImage(this.sprites.getImage('room_tile'), (i - j) * (Room.TILE_W / 2) + offsetX, (i + j) * (Room.TILE_H / 2) + offsetY);
+      if (tile > 0) {
+        ctx.drawImage(this.sprites.getImage('room_tile'), (i - j) * (Room.TILE_W / 2) + offsetX, (i + j) * (Room.TILE_H / 2) + offsetY - ((tile - 1) * Room.TILE_H));
       }
     }
   }
@@ -167,11 +167,11 @@ Room.prototype.drawPlayers = function() {
   var mapPositionX = (this.player.x - this.player.y) * Room.TILE_H + offsetX;
   var mapPositionY = (this.player.x + this.player.y) * Room.TILE_H / 2 + offsetY;
 
-  ctx.drawImage(this.sprites.getImage('shadow_tile'), mapPositionX, mapPositionY);
+  ctx.drawImage(this.sprites.getImage('shadow_tile'), mapPositionX, mapPositionY - ((this.heightmap[this.player.x][this.player.y] - 1) * Room.TILE_H));
   if (this.player.ready) {
-    ctx.drawImage(this.player.currentSprite(), mapPositionX, mapPositionY - 85);
+    ctx.drawImage(this.player.currentSprite(), mapPositionX, mapPositionY - 85 - (this.player.z * Room.TILE_H));
   } else {
-    ctx.drawImage(this.sprites.getImage('ghost' + this.player.rot), mapPositionX + 17, mapPositionY - 58);
+    ctx.drawImage(this.sprites.getImage('ghost' + this.player.rot), mapPositionX + 17, mapPositionY - 58 - (this.player.z * Room.TILE_H));
   }
 };
 

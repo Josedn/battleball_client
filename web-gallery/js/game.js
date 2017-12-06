@@ -26,6 +26,18 @@ Game.tick = function(elapsed) {
   this.draw();
 }.bind(Game);
 
+Game.setMap = function() {
+  var matrix = [[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]];
+  this.currentRoom = new Room(4, 4, matrix, this.ctx);
+
+  this.currentRoom.prepareRoom().then(function () {
+    console.log("ok");
+  }).catch(function (err) {
+    console.log("Fail: " + err);
+  });
+
+}.bind(Game);
+
 Game.onMouseMove = function(x, y, isDrag) {
 
 };
@@ -37,11 +49,6 @@ Game.onMouseClick = function(x, y) {
 Game.onResize = function() {
   this.width = this.canvas.width = window.innerWidth;
   this.height = this.canvas.height = window.innerHeight;
-};
-
-Game.setMap = function() {
-  var matrix = [[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]];
-  this.currentRoom = new Room(4, 4, matrix);
 };
 
 window.onload = function () {
@@ -74,5 +81,6 @@ window.onload = function () {
       Game.onResize();
     }, false);
 
+    //Debug
     Game.setMap();
 };

@@ -1,10 +1,11 @@
 function Sprites() {
-  images : {}
+  this.images = {};
 }
+
+Sprites.LOCAL_RESOURCES_URL = "./web-gallery/assets/";
 
 Sprites.prototype.loadImage = function (key, src) {
     var img = new Image();
-
     var d = new Promise(function (resolve, reject) {
         img.onload = function () {
             this.images[key] = img;

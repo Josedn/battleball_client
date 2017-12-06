@@ -32,9 +32,9 @@ Game.tick = function(elapsed) {
 
 Game.setMap = function() {
   var matrix = [[0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]];
-  this.currentRoom = new Room(9, 13, matrix, this);
+  this.currentRoom = new Room(9, 13, 0, 4, matrix, this);
 
-  this.currentRoom.prepareRoom().then(function () {
+  this.currentRoom.prepare().then(function () {
     console.log("ok");
   }).catch(function (err) {
     console.log("Fail: " + err);

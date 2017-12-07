@@ -1,6 +1,24 @@
 Room.TILE_H = 32;
 Room.TILE_W = 64;
 
+Room.PRIORITY_DOOR_FLOOR = 1;
+Room.PRIORITY_DOOR_FLOOR_SELECT = 2;
+Room.PRIORITY_DOOR_FLOOR_PLAYER_SHADOW = 3;
+Room.PRIORITY_DOOR_FLOOR_PLAYER = 4;
+Room.PRIORITY_DOOR_WALL = 5;
+Room.PRIORITY_WALL = 6;
+Room.PRIORITY_FLOOR = 7;
+Room.PRIORITY_FLOOR_SELECT = 8;
+Room.PRIORITY_PLAYER_SHADOW = 9;
+Room.PRIORITY_PLAYER = 10;
+
+function DrawableSprite(sprite, x, y, priority) {
+  this.sprite = sprite;
+  this.x = x;
+  this.y = y;
+  this.priority = priority;
+}
+
 function Camera(room) {
   this.room = room;
   this.reset();
@@ -26,10 +44,18 @@ function Room(cols, rows, doorX, doorY, heightmap, game) {
   this.players = {};
   this.sprites = new Sprites();
   this.camera = new Camera(this);
+  this.drawQueue = new PriorityQueue({
+    comparator: function(a, b) {
+      if (a.priority != b.priority) {
+        return a.priority - b.priority;
+      }
+      return a.y - b.y;
+    }.bind(this)
+  });
 
-  this.addPlayer(0, 2, 2, 0, 4, "Jose", "hd-190-10.lg-3023-1408.ch-215-91.hr-893-45");
-  this.addPlayer(1, doorX, doorY, 0, 2, "Jose", "hr-828-1407.sh-3089-110.ha-1013-110.ch-3323-110-92.lg-3058-82.hd-180-10");
-  this.addPlayer(2, 4, 10, 0, 2, "Jose", "sh-725-68.he-3258-1410-92.hr-3012-45.ch-665-110.lg-3006-110-110.hd-600-28");
+  this.addPlayer(0, doorX, doorY, 0, 4, "Jose", "hd-190-10.lg-3023-1408.ch-215-91.hr-893-45");
+  this.addPlayer(1, 3, 3, 0, 2, "Rajiv", "hr-828-1407.sh-3089-110.ha-1013-110.ch-3323-110-92.lg-3058-82.hd-180-10");
+  this.addPlayer(2, 2, 2, 0, 2, "Lupo", "sh-725-68.he-3258-1410-92.hr-3012-45.ch-665-110.lg-3006-110-110.hd-600-28");
 }
 
 Room.prototype.getPlayer = function(id) {
@@ -56,7 +82,7 @@ Room.prototype.prepare = function() {
     var p = this.loadSprites();
 
     Promise.all(p).then(function (loaded) {
-      console.log("Sprites loaded");
+      console.log("Sprites loaded (Room)");
       this.ready = true;
       resolve();
     }.bind(this),
@@ -97,41 +123,28 @@ Room.prototype.loadSprites = function() {
 };
 
 Room.prototype.drawWall = function() {
-  var ctx = this.game.ctx;
-
-  // mapX and mapY are offsets to make sure we can position the map as we want.
+    // mapX and mapY are offsets to make sure we can position the map as we want.
   var offsetX = this.camera.x;
   var offsetY = this.camera.y;
 
   for (var i = 0; i < this.rows; i++) {
-    /*if (i + 1 == this.doorY) {
-      ctx.drawImage(this.sprites.getImage('room_door_extended'), (1 - i) * (Room.TILE_W / 2) + offsetX - 40, (i + 1) * (Room.TILE_H / 2) + offsetY - 119);
+    if (i + 1 == this.doorY) {
+      //ctx.drawImage(this.sprites.getImage('room_door_extended'), (1 - i) * (Room.TILE_W / 2) + offsetX - 40, (i + 1) * (Room.TILE_H / 2) + offsetY - 119);
+      this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('room_door_extended'), (1 - i) * (Room.TILE_W / 2) + offsetX - 40, (i + 1) * (Room.TILE_H / 2) + offsetY - 119, Room.PRIORITY_WALL));
     }
-    else*/ if (i != this.doorY && i + 1 != this.doorY && i - 1 != this.doorY) {
-      ctx.drawImage(this.sprites.getImage('room_wall_l'), (1 - i) * (Room.TILE_W / 2) + offsetX - 8, (i + 1) * (Room.TILE_H / 2) + offsetY - 119);
+    else if (i != this.doorY && i + 1) {
+      //ctx.drawImage(this.sprites.getImage('room_wall_l'), (1 - i) * (Room.TILE_W / 2) + offsetX - 8, (i + 1) * (Room.TILE_H / 2) + offsetY - 119);
+      this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('room_wall_l'), (1 - i) * (Room.TILE_W / 2) + offsetX - 8, (i + 1) * (Room.TILE_H / 2) + offsetY - 119, Room.PRIORITY_WALL));
     }
   }
 
   for (var i = 1; i < this.cols; i++) {
-    ctx.drawImage(this.sprites.getImage('room_wall_r'), (i - 1) * (Room.TILE_W / 2) + offsetX + 64, (i + 1) * (Room.TILE_H / 2) + offsetY - 135);
+    //ctx.drawImage(this.sprites.getImage('room_wall_r'), (i - 1) * (Room.TILE_W / 2) + offsetX + 64, (i + 1) * (Room.TILE_H / 2) + offsetY - 135);
+    this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('room_wall_r'), (i - 1) * (Room.TILE_W / 2) + offsetX + 64, (i + 1) * (Room.TILE_H / 2) + offsetY - 135, Room.PRIORITY_WALL));
   }
 };
 
-Room.prototype.drawDoorWall = function() {
-  var ctx = this.game.ctx;
-
-  // mapX and mapY are offsets to make sure we can position the map as we want.
-  var offsetX = this.camera.x;
-  var offsetY = this.camera.y;
-
-  ctx.drawImage(this.sprites.getImage('room_door_extended'), (1 - (this.doorY - 1)) * (Room.TILE_W / 2) + offsetX - 40, ((this.doorY - 1) + 1) * (Room.TILE_H / 2) + offsetY - 119);
-  ctx.drawImage(this.sprites.getImage('room_wall_l'), (1 - (this.doorY + 1)) * (Room.TILE_W / 2) + offsetX - 8, ((this.doorY + 1) + 1) * (Room.TILE_H / 2) + offsetY - 119);
-
-};
-
 Room.prototype.drawFloor = function() {
-  var ctx = this.game.ctx;
-
   // mapX and mapY are offsets to make sure we can position the map as we want.
   var offsetX = this.camera.x;
   var offsetY = this.camera.y;
@@ -142,24 +155,22 @@ Room.prototype.drawFloor = function() {
       var tile = this.heightmap[i][j];
       // Draw the represented image number, at the desired X & Y coordinates followed by the graphic width and height.
       if (tile > 0) {
-        ctx.drawImage(this.sprites.getImage('room_tile'), (i - j) * (Room.TILE_W / 2) + offsetX, (i + j) * (Room.TILE_H / 2) + offsetY - ((tile - 1) * Room.TILE_H));
+        //ctx.drawImage(this.sprites.getImage('room_tile'), (i - j) * (Room.TILE_W / 2) + offsetX, (i + j) * (Room.TILE_H / 2) + offsetY - ((tile - 1) * Room.TILE_H));
+        this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('room_tile'), (i - j) * (Room.TILE_W / 2) + offsetX, (i + j) * (Room.TILE_H / 2) + offsetY - ((tile - 1) * Room.TILE_H), Room.PRIORITY_FLOOR));
       }
     }
   }
 };
 
 Room.prototype.drawDoorFloor = function() {
-  var ctx = this.game.ctx;
-
   var offsetX = this.camera.x;
   var offsetY = this.camera.y;
 
-  ctx.drawImage(this.sprites.getImage('room_tile'), (this.doorX - this.doorY) * (Room.TILE_W / 2) + offsetX, (this.doorX + this.doorY) * (Room.TILE_H / 2) + offsetY);
+  //ctx.drawImage(this.sprites.getImage('room_tile'), (this.doorX - this.doorY) * (Room.TILE_W / 2) + offsetX, (this.doorX + this.doorY) * (Room.TILE_H / 2) + offsetY);
+  this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('room_tile'), (this.doorX - this.doorY) * (Room.TILE_W / 2) + offsetX, (this.doorX + this.doorY) * (Room.TILE_H / 2) + offsetY, Room.PRIORITY_DOOR_FLOOR));
 };
 
 Room.prototype.drawSelectedTile = function() {
-  var ctx = this.game.ctx;
-
   var offsetX = this.camera.x;
   var offsetY = this.camera.y;
 
@@ -170,7 +181,12 @@ Room.prototype.drawSelectedTile = function() {
   var y = Math.floor((xplusy - xminusy) / 2);
 
   if (this.isValidTile(x, y)) {
-    ctx.drawImage(this.sprites.getImage('selected_tile'), (x - y) * (Room.TILE_W / 2) + offsetX, (x + y) * (Room.TILE_H / 2) + offsetY);
+    //ctx.drawImage(this.sprites.getImage('selected_tile'), (x - y) * (Room.TILE_W / 2) + offsetX, (x + y) * (Room.TILE_H / 2) + offsetY);
+    var prio = Room.PRIORITY_FLOOR_SELECT;
+    if (this.doorX == x && this.doorY == y) {
+      prio = Room.PRIORITY_DOOR_FLOOR;
+    }
+    this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('selected_tile'), (x - y) * (Room.TILE_W / 2) + offsetX, (x + y) * (Room.TILE_H / 2) + offsetY, prio));
   }
 };
 
@@ -181,20 +197,28 @@ Room.prototype.drawPlayers = function () {
 };
 
 Room.prototype.drawPlayer = function(player) {
-
-  var ctx = this.game.ctx;
-
   var offsetX = this.camera.x;
   var offsetY = this.camera.y;
 
   var mapPositionX = (player.x - player.y) * Room.TILE_H + offsetX;
   var mapPositionY = (player.x + player.y) * Room.TILE_H / 2 + offsetY;
 
-  ctx.drawImage(this.sprites.getImage('shadow_tile'), mapPositionX, mapPositionY - ((this.heightmap[Math.floor(player.x)][Math.floor(player.y)] - 1) * Room.TILE_H));
+  var prio = Room.PRIORITY_PLAYER;
+  var shadowPrio = Room.PRIORITY_PLAYER_SHADOW;
+
+  if (player.x == this.doorX && player.y == this.doorY) {
+    prio = Room.PRIORITY_DOOR_FLOOR_PLAYER;
+    shadowPrio = Room.PRIORITY_DOOR_FLOOR_PLAYER_SHADOW;
+  }
+
+  //ctx.drawImage(this.sprites.getImage('shadow_tile'), mapPositionX, mapPositionY - ((this.heightmap[Math.floor(player.x)][Math.floor(player.y)] - 1) * Room.TILE_H));
+  this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('shadow_tile'), mapPositionX, mapPositionY - ((this.heightmap[Math.floor(player.x)][Math.floor(player.y)] - 1) * Room.TILE_H), shadowPrio));
   if (player.ready) {
-    ctx.drawImage(player.currentSprite(), mapPositionX, mapPositionY - 85 - (player.z * Room.TILE_H));
+    //ctx.drawImage(player.currentSprite(), mapPositionX, mapPositionY - 85 - (player.z * Room.TILE_H));
+    this.drawQueue.queue(new DrawableSprite(player.currentSprite(), mapPositionX, mapPositionY - 85 - (player.z * Room.TILE_H), prio));
   } else {
-    ctx.drawImage(this.sprites.getImage('ghost' + player.rot), mapPositionX + 17, mapPositionY - 58 - (player.z * Room.TILE_H));
+    //ctx.drawImage(this.sprites.getImage('ghost' + player.rot), mapPositionX + 17, mapPositionY - 58 - (player.z * Room.TILE_H));
+    this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('ghost' + player.rot), mapPositionX + 17, mapPositionY - 58 - (player.z * Room.TILE_H), prio));
   }
 };
 
@@ -203,8 +227,13 @@ Room.prototype.draw = function() {
   this.drawWall();
   this.drawFloor();
   this.drawPlayers();
-  this.drawDoorWall();
   this.drawSelectedTile();
+
+  var ctx = this.game.ctx;
+  while (this.drawQueue.length > 0) {
+    var drawable = this.drawQueue.dequeue();
+    ctx.drawImage(drawable.sprite, drawable.x, drawable.y);
+  }
 };
 
 Room.prototype.tick = function(delta) {

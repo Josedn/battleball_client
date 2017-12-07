@@ -23,7 +23,7 @@ Player.prototype.prepare = function() {
     var p = this.loadSprites();
 
     Promise.all(p).then(function (loaded) {
-      console.log("Sprites loaded");
+      console.log("Sprites loaded (" + this.name + ")");
       this.ready = true;
       resolve();
     }.bind(this),

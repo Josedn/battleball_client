@@ -1,9 +1,29 @@
 var Game = {};
 
+function updateStatus(status) {
+  var stat_div = document.getElementById("status");
+  stat_div.innerHTML = status;
+}
+
+function onLogin() {
+  var username = document.getElementById("input_username").value;
+
+  var looks = document.getElementsByName('look');
+  var look;
+  for (var i = 0; i < looks.length; i++) {
+    if (looks[i].checked) {
+        look = looks[i].value;
+    }
+  }
+  Game.doLogin(username, look);
+}
+
 Game.run = function(canvas) {
   this.canvas = canvas;
   this.ctx = this.canvas.getContext('2d');
   this._previousElapsed = 0;
+  this.connection = new Connection(this);
+  updateStatus("Connecting to server...");
 
   this.onResize();
   window.requestAnimationFrame(this.tick);
@@ -26,21 +46,57 @@ Game.tick = function(elapsed) {
   if (this.currentRoom != null && this.currentRoom.ready) {
     this.currentRoom.tick(delta);
   }
-
   this.draw();
 }.bind(Game);
 
-Game.setMap = function() {
-  var matrix = [[0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]];
-  this.currentRoom = new Room(9, 13, 0, 4, matrix, this);
+Game.doLogin = function(username, look) {
+  if (this.communication != null) {
+    this.communication.doLogin(username, look);
+  }
+};
 
+Game.onLoggedIn = function() {
+  console.log("Logged in!");
+  this.communication.requestMap();
+};
+
+Game.setMap = function(cols, rows, doorX, doorY, heightmap) {
+  this.currentRoom = new Room(cols, rows, doorX, doorY, heightmap, this);
   this.currentRoom.prepare().then(function () {
-    console.log("ok");
+    console.log("Room loaded");
   }).catch(function (err) {
     console.log("Fail: " + err);
   });
-
 }.bind(Game);
+
+Game.handleConnectionError = function() {
+  console.log("Connection fail");
+  updateStatus("Can't connect to server :'(");
+};
+
+Game.handleOpenConnection = function() {
+  console.log("Connection is open");
+  updateStatus("Connected to server!");
+  this.communication = new Communication(this);
+};
+
+Game.handleMessage = function(data) {
+  console.log("New message received");
+  this.communication.handleMessage(data);
+};
+
+Game.handleClosedConnection = function() {
+  this.currentRoom = null;
+  this.communication = null;
+  console.log("Connection is closed");
+  updateStatus("Lost connection!")
+
+  var main_wrapper = document.getElementById("main_wrapper");
+  main_wrapper.style.display = 'block';
+
+  var chat_container = document.getElementById("chat_container");
+  chat_container.style.display = 'none';
+};
 
 Game.onMouseMove = function(x, y, isDrag) {
   if (this.currentRoom != null && this.currentRoom.ready) {
@@ -89,7 +145,4 @@ window.onload = function () {
     window.addEventListener('resize', function(evt) {
       Game.onResize();
     }, false);
-
-    //Debug
-    Game.setMap();
 };

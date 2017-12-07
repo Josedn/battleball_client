@@ -52,10 +52,6 @@ function Room(cols, rows, doorX, doorY, heightmap, game) {
       return a.y - b.y;
     }.bind(this)
   });
-
-  this.addPlayer(0, doorX, doorY, 0, 4, "Jose", "hd-190-10.lg-3023-1408.ch-215-91.hr-893-45");
-  this.addPlayer(1, 3, 3, 0, 2, "Rajiv", "hr-828-1407.sh-3089-110.ha-1013-110.ch-3323-110-92.lg-3058-82.hd-180-10");
-  this.addPlayer(2, 2, 2, 0, 2, "Lupo", "sh-725-68.he-3258-1410-92.hr-3012-45.ch-665-110.lg-3006-110-110.hd-600-28");
 }
 
 Room.prototype.getPlayer = function(id) {

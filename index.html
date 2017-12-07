@@ -4,16 +4,22 @@
   <meta charset="utf-8">
   <title>Battleball</title>
 
-  <!--<link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet">-->
+  <link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="./web-gallery/css/style.css" />
+  <script src="./web-gallery/js/priority-queue.min.js"></script>
+  <script src="./web-gallery/js/io.js"></script>
+  <script src="./web-gallery/js/communication.js"></script>
+  <script src="./web-gallery/js/sprites.js"></script>
+  <script src="./web-gallery/js/player.js"></script>
+  <script src="./web-gallery/js/room.js"></script>
+  <script src="./web-gallery/js/game.js"></script>
 
   <link rel="shortcut icon" href="./favicon.ico">
-  <!--<link href="https://fonts.googleapis.com/css?family=Poiret+One|Raleway:200|Roboto" rel="stylesheet">-->
 </head>
 <body>
-  <canvas></canvas>
+  <canvas id="game"></canvas>
 
-  <!--<header>
+  <header>
     <h2>Battleball.io</h2>
   </header>
 
@@ -24,19 +30,56 @@
     </form>
   </section>
 
-  <section class="invisible_box">
-    battleball.io
+  <section id="main_wrapper">
+    <section class="box">
+      <img src="./web-gallery/images/Bb2_logo_193x87.gif">
+      <br>
+      <br>
+      <form onsubmit="onLogin(); return false;">
+        <br>
+        <input type="text" placeholder="Username" id="input_username">
+        <br>
+        <br>
+        Player:
+        <br>
+        <div style="display:inline-block;padding: 10px;">
+          <img src="https://www.habbo.com/habbo-imaging/avatarimage?figure=hd-190-10.lg-3023-1408.ch-215-91.hr-893-45&direction=2&head_direction=2&action=wlk&gesture=nrm&size=m&frame=0">
+          <br>
+          <input type="radio" name="look" value="hd-190-10.lg-3023-1408.ch-215-91.hr-893-45" checked>
+        </div>
+        <div style="display:inline-block;padding: 10px;">
+          <img src="https://www.habbo.com/habbo-imaging/avatarimage?figure=hr-828-1407.sh-3089-110.ha-1013-110.ch-3323-110-92.lg-3058-82.hd-180-10&direction=2&head_direction=2&action=wlk&gesture=nrm&size=m&frame=0">
+          <br>
+          <input type="radio" name="look" value="hr-828-1407.sh-3089-110.ha-1013-110.ch-3323-110-92.lg-3058-82.hd-180-10">
+        </div>
+        <div style="display:inline-block;padding: 10px;">
+          <img src="https://www.habbo.com/habbo-imaging/avatarimage?figure=sh-725-68.he-3258-1410-92.hr-3012-45.ch-665-110.lg-3006-110-110.hd-600-28&direction=3&head_direction=3&action=wlk&gesture=nrm&size=m&frame=0">
+          <br>
+          <input type="radio" name="look" value="sh-725-68.he-3258-1410-92.hr-3012-45.ch-665-110.lg-3006-110-110.hd-600-28">
+        </div>
+        <div style="display:inline-block;padding: 10px;">
+          <img src="https://www.habbo.com/habbo-imaging/avatarimage?figure=hr-3162-1407.sh-300-110.hd-180-1390.lg-275-110.ch-215-85.ha-3140-110&direction=4&head_direction=4&action=wlk&gesture=nrm&size=m&frame=0">
+          <br>
+          <input type="radio" name="look" value="hr-3162-1407.sh-300-110.hd-180-1390.lg-275-110.ch-215-85.ha-3140-110">
+        </div>
+        <div style="display:inline-block;padding: 10px;">
+          <img src="https://www.habbo.com/habbo-imaging/avatarimage?figure=lg-3058-1336.hr-3090-1407.ha-3150-110-92.hd-3091-1.ch-3059-92.sh-3016-110&direction=4&head_direction=4&action=wlk&gesture=nrm&size=m&frame=0">
+          <br>
+          <input type="radio" name="look" value="lg-3058-1336.hr-3090-1407.ha-3150-110-92.hd-3091-1.ch-3059-92.sh-3016-110">
+        </div>
+
+        <br>
+        <br>
+        <input type="submit" value="Join">
+      </form>
+      <br>
+      <div style="font-size: 0.8em; " id="status"></div>
+    </section>
+    <section class="invisible_box">
+      battleball.io
+    </section>
   </section>
-
-
   <footer>
-
-  </footer> -->
-  <script src="./web-gallery/js/priority-queue.min.js"></script>
-  <script src="./web-gallery/js/sprites.js"></script>
-  <script src="./web-gallery/js/player.js"></script>
-  <script src="./web-gallery/js/room.js"></script>
-  <script src="./web-gallery/js/game.js"></script>
+  </footer>
 </body>
-
 </html>

@@ -26,23 +26,27 @@ function Room(cols, rows, doorX, doorY, heightmap, game) {
   this.players = {};
   this.sprites = new Sprites();
   this.camera = new Camera(this);
-  this.player = new Player(0, 4, 4, 0, 4, "Jose", "hd-190-10.lg-3023-1408.ch-215-91.hr-893-45");
-  this.player.prepare();
+
+  this.addPlayer(0, 2, 2, 0, 4, "Jose", "hd-190-10.lg-3023-1408.ch-215-91.hr-893-45");
+  this.addPlayer(1, doorX, doorY, 0, 2, "Jose", "hr-828-1407.sh-3089-110.ha-1013-110.ch-3323-110-92.lg-3058-82.hd-180-10");
+  this.addPlayer(2, 4, 10, 0, 2, "Jose", "sh-725-68.he-3258-1410-92.hr-3012-45.ch-665-110.lg-3006-110-110.hd-600-28");
 }
 
 Room.prototype.getPlayer = function(id) {
   return (id in this.players) ? this.players[id] : null;
 };
 
-Room.prototype.addPlayer = function(id, x, y, rot, name, look) {
+Room.prototype.addPlayer = function(id, x, y, z, rot, name, look) {
   if (!(id in this.players)) {
-    var p = new Player(id, x, y, rot, name, look);
+    var p = new Player(id, x, y, z, rot, name, look);
+    p.prepare();
+    this.players[id] = p;
   }
 };
 
 Room.prototype.removePlayer = function(id) {
   if (id in this.players) {
-    this.players[id] = null;
+    delete(this.players[id]);
   }
 };
 
@@ -100,10 +104,10 @@ Room.prototype.drawWall = function() {
   var offsetY = this.camera.y;
 
   for (var i = 0; i < this.rows; i++) {
-    if (i + 1 == this.doorY) {
+    /*if (i + 1 == this.doorY) {
       ctx.drawImage(this.sprites.getImage('room_door_extended'), (1 - i) * (Room.TILE_W / 2) + offsetX - 40, (i + 1) * (Room.TILE_H / 2) + offsetY - 119);
     }
-    else if (i != this.doorY) {
+    else*/ if (i != this.doorY && i + 1 != this.doorY && i - 1 != this.doorY) {
       ctx.drawImage(this.sprites.getImage('room_wall_l'), (1 - i) * (Room.TILE_W / 2) + offsetX - 8, (i + 1) * (Room.TILE_H / 2) + offsetY - 119);
     }
   }
@@ -111,7 +115,19 @@ Room.prototype.drawWall = function() {
   for (var i = 1; i < this.cols; i++) {
     ctx.drawImage(this.sprites.getImage('room_wall_r'), (i - 1) * (Room.TILE_W / 2) + offsetX + 64, (i + 1) * (Room.TILE_H / 2) + offsetY - 135);
   }
-}
+};
+
+Room.prototype.drawDoorWall = function() {
+  var ctx = this.game.ctx;
+
+  // mapX and mapY are offsets to make sure we can position the map as we want.
+  var offsetX = this.camera.x;
+  var offsetY = this.camera.y;
+
+  ctx.drawImage(this.sprites.getImage('room_door_extended'), (1 - (this.doorY - 1)) * (Room.TILE_W / 2) + offsetX - 40, ((this.doorY - 1) + 1) * (Room.TILE_H / 2) + offsetY - 119);
+  ctx.drawImage(this.sprites.getImage('room_wall_l'), (1 - (this.doorY + 1)) * (Room.TILE_W / 2) + offsetX - 8, ((this.doorY + 1) + 1) * (Room.TILE_H / 2) + offsetY - 119);
+
+};
 
 Room.prototype.drawFloor = function() {
   var ctx = this.game.ctx;
@@ -158,20 +174,27 @@ Room.prototype.drawSelectedTile = function() {
   }
 };
 
-Room.prototype.drawPlayers = function() {
+Room.prototype.drawPlayers = function () {
+  Object.keys(this.players).forEach(key => {
+    this.drawPlayer(this.players[key]);
+   });
+};
+
+Room.prototype.drawPlayer = function(player) {
+
   var ctx = this.game.ctx;
 
   var offsetX = this.camera.x;
   var offsetY = this.camera.y;
 
-  var mapPositionX = (this.player.x - this.player.y) * Room.TILE_H + offsetX;
-  var mapPositionY = (this.player.x + this.player.y) * Room.TILE_H / 2 + offsetY;
+  var mapPositionX = (player.x - player.y) * Room.TILE_H + offsetX;
+  var mapPositionY = (player.x + player.y) * Room.TILE_H / 2 + offsetY;
 
-  ctx.drawImage(this.sprites.getImage('shadow_tile'), mapPositionX, mapPositionY - ((this.heightmap[this.player.x][this.player.y] - 1) * Room.TILE_H));
-  if (this.player.ready) {
-    ctx.drawImage(this.player.currentSprite(), mapPositionX, mapPositionY - 85 - (this.player.z * Room.TILE_H));
+  ctx.drawImage(this.sprites.getImage('shadow_tile'), mapPositionX, mapPositionY - ((this.heightmap[Math.floor(player.x)][Math.floor(player.y)] - 1) * Room.TILE_H));
+  if (player.ready) {
+    ctx.drawImage(player.currentSprite(), mapPositionX, mapPositionY - 85 - (player.z * Room.TILE_H));
   } else {
-    ctx.drawImage(this.sprites.getImage('ghost' + this.player.rot), mapPositionX + 17, mapPositionY - 58 - (this.player.z * Room.TILE_H));
+    ctx.drawImage(this.sprites.getImage('ghost' + player.rot), mapPositionX + 17, mapPositionY - 58 - (player.z * Room.TILE_H));
   }
 };
 
@@ -179,12 +202,17 @@ Room.prototype.draw = function() {
   this.drawDoorFloor();
   this.drawWall();
   this.drawFloor();
-  this.drawSelectedTile();
   this.drawPlayers();
+  this.drawDoorWall();
+  this.drawSelectedTile();
 };
 
 Room.prototype.tick = function(delta) {
-  this.player.tick(delta);
+  Object.keys(this.players).forEach(key => {
+     if (this.players[key].ready) {
+       this.players[key].tick(delta);
+     }
+   });
 };
 
 Room.prototype.onMouseMove = function(x, y, isDrag) {

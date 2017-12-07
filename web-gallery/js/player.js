@@ -1,3 +1,5 @@
+Player.SPEED = 2; //Squares per second
+
 function Player(id, x, y, z, rot, name, look)
 {
   this.id = id;
@@ -7,8 +9,8 @@ function Player(id, x, y, z, rot, name, look)
   this.rot = rot;
   this.name = name;
   this.look = look;
-  this.targetX = x + 1;
-  this.targetY = y + 1;
+  this.targetX = x;
+  this.targetY = y;
   this.ready = false;
   this.elapsedTime = 0;
   this.walkFrame = 0;
@@ -60,14 +62,49 @@ Player.prototype.nextWalkFrame = function() {
 }
 
 Player.prototype.tick = function(delta) {
-  this.elapsedTime += delta;
-  if (this.elapsedTime >= 125) {
-    this.nextWalkFrame();
-    this.elapsedTime = 0;
+  if (this.isWalking()) {
+    this.elapsedTime += delta;
+    if (this.elapsedTime >= 100) {
+      this.nextWalkFrame();
+      this.elapsedTime = 0;
+    }
+    this.move(delta);
   }
 }
 
-Player.prototype.draw = function(finalX, finalY) {
+Player.prototype.move = function(delta) {
+  delta = delta / 1000;
+  if (this.targetX > this.x)
+  {
+    this.x += Player.SPEED * delta;
+    if (this.x > this.targetX)
+    {
+      this.x = this.targetX;
+    }
+  }
+  else if (this.targetX < this.x)
+  {
+    this.x += -Player.SPEED * delta;
+    if (this.x < this.targetX)
+    {
+      this.x = this.targetX;
+    }
+  }
 
-
+  if (this.targetY > this.y)
+  {
+    this.y += Player.SPEED * delta;
+    if (this.y > this.targetY)
+    {
+      this.y = this.targetY;
+    }
+  }
+  else if (this.targetY < this.y)
+  {
+    this.y -= Player.SPEED * delta;
+    if (this.y < this.targetY)
+    {
+      this.y = this.targetY;
+    }
+  }
 };

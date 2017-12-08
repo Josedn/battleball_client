@@ -1,8 +1,9 @@
 Sprites.LOCAL_RESOURCES_URL = "./web-gallery/assets/";
-Sprites.EXTERNAL_IMAGER_URL = "https://www.habbo.com/habbo-imaging/avatarimage?figure=";
+Sprites.EXTERNAL_IMAGER_URL = "http://localhost/avatarimage.php?figure=";
 
 function Sprites() {
   this.images = {};
+  this.silhouettes = {};
 }
 
 Sprites.prototype.loadImage = function (key, src) {
@@ -10,6 +11,7 @@ Sprites.prototype.loadImage = function (key, src) {
     var d = new Promise(function (resolve, reject) {
         img.onload = function () {
             this.images[key] = img;
+            this.silhouettes[key] = this.generateSilhouette(img, 255, 0, 0);
             resolve(img);
         }.bind(this);
 
@@ -24,6 +26,10 @@ Sprites.prototype.loadImage = function (key, src) {
 
 Sprites.prototype.getImage = function (key) {
     return (key in this.images) ? this.images[key] : null;
+};
+
+Sprites.prototype.getSilhouette = function (key) {
+    return (key in this.silhouettes) ? this.silhouettes[key] : null;
 };
 
 Sprites.prototype.loadSimpleAvatar = function (key, look, direction) {
@@ -53,3 +59,33 @@ Sprites.prototype.loadAllWalkingAvatar = function (key, look) {
   }
   return Promise.all(p);
 }
+
+Sprites.prototype.generateSilhouette  = function(img, r, g, b) {
+  var element = document.createElement('canvas');
+  var c = element.getContext("2d");
+
+  var width = img.width;
+  var height = img.height;
+
+  element.width = width;
+  element.height = height;
+
+  c.drawImage(img, 0, 0);
+  var imageData = c.getImageData(0, 0, width, height);
+  for (var y = 0; y < height; y++) {
+    var inpos = y * width * 4;
+    for (var x = 0; x < width; x++) {
+      var pr = imageData.data[inpos++]
+      var pg = imageData.data[inpos++]
+      var pb = imageData.data[inpos++]
+      var pa = imageData.data[inpos++]
+      if (pa != 0) {
+        imageData.data[inpos - 2] = b;   //B
+        imageData.data[inpos - 3] = g;   //G
+        imageData.data[inpos - 4] = r; //R
+      }
+    }
+  }
+  c.putImageData(imageData, 0, 0);
+  return element;
+};

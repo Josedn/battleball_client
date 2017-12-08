@@ -238,7 +238,7 @@ Room.prototype.draw = function() {
 
 Room.prototype.tick = function(delta) {
   Object.keys(this.players).forEach(key => {
-     if (this.players[key] != null && this.players[key].ready) {
+     if (this.players[key] != null) {
        this.players[key].tick(delta);
      }
    });

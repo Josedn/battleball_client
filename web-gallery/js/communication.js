@@ -8,6 +8,7 @@ Communication.INCOMING_MAP_DATA = 4;
 Communication.INCOMING_PLAYERS_DATA = 6;
 Communication.INCOMING_PLAYER_MOVEMENT = 8;
 Communication.INCOMING_CHAT = 10;
+Communication.INCOMING_PLAYER_REMOVE = 11;
 
 function Communication(game) {
   this.game = game;
@@ -55,6 +56,9 @@ Communication.prototype.handleMessage = function(data) {
     case Communication.INCOMING_PLAYER_MOVEMENT:
       this.handleMovement(request);
       break;
+    case Communication.INCOMING_PLAYER_REMOVE:
+      this.handleRemovePlayer(request);
+      break;
     case Communication.INCOMING_CHAT:
       this.handleChat(request);
       break;
@@ -84,11 +88,39 @@ Communication.prototype.handleMap = function(request) {
 };
 
 Communication.prototype.handlePlayers = function(request) {
+  var count = request.popInt();
+  console.log("Received (" + count + ") players");
 
+  for (var i = 0; i < count; i++) {
+    var id = request.popInt();
+    var x = request.popInt();
+    var y  = request.popInt();
+    var z  = parseFloat(request.popString());
+    var rot = request.popInt();
+    var name = request.popString();
+    var look = request.popString();
+
+    if (this.game.currentRoom != null) {
+      this.game.currentRoom.addPlayer(id, x, y, z, rot, name, look);
+    }
+  }
 };
 
 Communication.prototype.handleMovement = function(request) {
+  var userId = request.popInt();
+  var x = request.popInt();
+  var y = request.popInt();
+  var rot = request.popInt();
+  if (this.game.currentRoom != null) {
+    this.game.currentRoom.movePlayer(userId, x, y, rot);
+  }
+};
 
+Communication.prototype.handleRemovePlayer = function(request) {
+  var userId = request.popInt();
+  if (this.game.currentRoom != null) {
+    this.game.currentRoom.removePlayer(userId);
+  }
 };
 
 Communication.prototype.handleChat = function(request) {

@@ -72,6 +72,12 @@ Player.prototype.tick = function(delta) {
   }
 }
 
+Player.prototype.setMovement = function(x, y, rot) {
+  this.targetX = x;
+  this.targetY = y;
+  this.rot = rot;
+};
+
 Player.prototype.move = function(delta) {
   delta = delta / 1000;
   if (this.targetX > this.x)

@@ -15,18 +15,38 @@ function onLogin() {
         look = looks[i].value;
     }
   }
-  Game.doLogin(username, look);
+  Game.queueLogin(username, look);
+}
+
+function showBox() {
+  var main_wrapper = document.getElementById("main_wrapper");
+  main_wrapper.style.display = 'block';
+
+  var chat_container = document.getElementById("chat_container");
+  chat_container.style.display = 'none';
+}
+
+function closeBox() {
+  var main_wrapper = document.getElementById("main_wrapper");
+  main_wrapper.style.display = 'none';
+
+  var chat_container = document.getElementById("chat_container");
+  chat_container.style.display = 'block';
 }
 
 Game.run = function(canvas) {
   this.canvas = canvas;
   this.ctx = this.canvas.getContext('2d');
   this._previousElapsed = 0;
+  this.queuedLogin = false;
+  this.onResize();
+  this.tryConnect();
+  window.requestAnimationFrame(this.tick);
+}.bind(Game);
+
+Game.tryConnect = function() {
   this.connection = new Connection(this);
   updateStatus("Connecting to server...");
-
-  this.onResize();
-  window.requestAnimationFrame(this.tick);
 }.bind(Game);
 
 Game.draw = function() {
@@ -49,6 +69,18 @@ Game.tick = function(elapsed) {
   this.draw();
 }.bind(Game);
 
+Game.queueLogin = function(username, look) {
+  this.username = username;
+  this.look = look;
+
+  if (this.communication != null) {
+    this.doLogin(username, look);
+  } else {
+    this.queuedLogin = true;
+    this.tryConnect();
+  }
+};
+
 Game.doLogin = function(username, look) {
   if (this.communication != null) {
     this.communication.doLogin(username, look);
@@ -57,6 +89,7 @@ Game.doLogin = function(username, look) {
 
 Game.onLoggedIn = function() {
   console.log("Logged in!");
+  closeBox();
   this.communication.requestMap();
 };
 
@@ -72,16 +105,20 @@ Game.setMap = function(cols, rows, doorX, doorY, heightmap) {
 Game.handleConnectionError = function() {
   console.log("Connection fail");
   updateStatus("Can't connect to server :'(");
+  showBox();
 };
 
 Game.handleOpenConnection = function() {
   console.log("Connection is open");
   updateStatus("Connected to server!");
   this.communication = new Communication(this);
+  if (this.queuedLogin) {
+    this.doLogin(this.username, this.look);
+  }
+  this.queuedLogin = false;
 };
 
 Game.handleMessage = function(data) {
-  console.log("New message received");
   this.communication.handleMessage(data);
 };
 
@@ -89,13 +126,8 @@ Game.handleClosedConnection = function() {
   this.currentRoom = null;
   this.communication = null;
   console.log("Connection is closed");
-  updateStatus("Lost connection!")
-
-  var main_wrapper = document.getElementById("main_wrapper");
-  main_wrapper.style.display = 'block';
-
-  var chat_container = document.getElementById("chat_container");
-  chat_container.style.display = 'none';
+  updateStatus("Lost connection!");
+  showBox();
 };
 
 Game.onMouseMove = function(x, y, isDrag) {
@@ -105,7 +137,9 @@ Game.onMouseMove = function(x, y, isDrag) {
 }.bind(Game);
 
 Game.onMouseClick = function(x, y) {
-
+  if (this.currentRoom != null && this.currentRoom.ready) {
+    this.currentRoom.onMouseClick(x, y);
+  }
 }.bind(Game);
 
 Game.onResize = function() {

@@ -72,6 +72,13 @@ Room.prototype.removePlayer = function(id) {
   }
 };
 
+Room.prototype.movePlayer = function(userId, x, y, rot) {
+  var player = this.getPlayer(userId);
+  if (player != null) {
+    player.setMovement(x, y, rot);
+  }
+};
+
 Room.prototype.prepare = function() {
   return new Promise(function (resolve, reject) {
 
@@ -146,24 +153,20 @@ Room.prototype.drawFloor = function() {
   var offsetY = this.camera.y;
 
   // loop through our map and draw out the image represented by the number.
-  for (var i = 1; i < this.cols; i++) {
+  for (var i = 0; i < this.cols; i++) {
     for (var j = 0; j < this.rows; j++) {
       var tile = this.heightmap[i][j];
       // Draw the represented image number, at the desired X & Y coordinates followed by the graphic width and height.
       if (tile > 0) {
+        if (this.doorX == i && this.doorY == j) {
+          this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('room_tile'), (i - j) * (Room.TILE_W / 2) + offsetX, (i + j) * (Room.TILE_H / 2) + offsetY - ((tile - 1) * Room.TILE_H), Room.PRIORITY_DOOR_FLOOR));
+        } else {
+          this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('room_tile'), (i - j) * (Room.TILE_W / 2) + offsetX, (i + j) * (Room.TILE_H / 2) + offsetY - ((tile - 1) * Room.TILE_H), Room.PRIORITY_FLOOR));
+        }
         //ctx.drawImage(this.sprites.getImage('room_tile'), (i - j) * (Room.TILE_W / 2) + offsetX, (i + j) * (Room.TILE_H / 2) + offsetY - ((tile - 1) * Room.TILE_H));
-        this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('room_tile'), (i - j) * (Room.TILE_W / 2) + offsetX, (i + j) * (Room.TILE_H / 2) + offsetY - ((tile - 1) * Room.TILE_H), Room.PRIORITY_FLOOR));
       }
     }
   }
-};
-
-Room.prototype.drawDoorFloor = function() {
-  var offsetX = this.camera.x;
-  var offsetY = this.camera.y;
-
-  //ctx.drawImage(this.sprites.getImage('room_tile'), (this.doorX - this.doorY) * (Room.TILE_W / 2) + offsetX, (this.doorX + this.doorY) * (Room.TILE_H / 2) + offsetY);
-  this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('room_tile'), (this.doorX - this.doorY) * (Room.TILE_W / 2) + offsetX, (this.doorX + this.doorY) * (Room.TILE_H / 2) + offsetY, Room.PRIORITY_DOOR_FLOOR));
 };
 
 Room.prototype.drawSelectedTile = function() {
@@ -188,7 +191,9 @@ Room.prototype.drawSelectedTile = function() {
 
 Room.prototype.drawPlayers = function () {
   Object.keys(this.players).forEach(key => {
-    this.drawPlayer(this.players[key]);
+    if (this.players[key] != null) {
+      this.drawPlayer(this.players[key]);
+    }
    });
 };
 
@@ -202,13 +207,13 @@ Room.prototype.drawPlayer = function(player) {
   var prio = Room.PRIORITY_PLAYER;
   var shadowPrio = Room.PRIORITY_PLAYER_SHADOW;
 
-  if (player.x == this.doorX && player.y == this.doorY) {
+  if (Math.round(player.x) == this.doorX && Math.round(player.y) == this.doorY) {
     prio = Room.PRIORITY_DOOR_FLOOR_PLAYER;
     shadowPrio = Room.PRIORITY_DOOR_FLOOR_PLAYER_SHADOW;
   }
 
   //ctx.drawImage(this.sprites.getImage('shadow_tile'), mapPositionX, mapPositionY - ((this.heightmap[Math.floor(player.x)][Math.floor(player.y)] - 1) * Room.TILE_H));
-  this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('shadow_tile'), mapPositionX, mapPositionY - ((this.heightmap[Math.floor(player.x)][Math.floor(player.y)] - 1) * Room.TILE_H), shadowPrio));
+  //this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('shadow_tile'), mapPositionX, mapPositionY - ((this.heightmap[Math.floor(player.x)][Math.floor(player.y)] - 1) * Room.TILE_H), shadowPrio));
   if (player.ready) {
     //ctx.drawImage(player.currentSprite(), mapPositionX, mapPositionY - 85 - (player.z * Room.TILE_H));
     this.drawQueue.queue(new DrawableSprite(player.currentSprite(), mapPositionX, mapPositionY - 85 - (player.z * Room.TILE_H), prio));
@@ -219,7 +224,6 @@ Room.prototype.drawPlayer = function(player) {
 };
 
 Room.prototype.draw = function() {
-  this.drawDoorFloor();
   this.drawWall();
   this.drawFloor();
   this.drawPlayers();
@@ -234,10 +238,28 @@ Room.prototype.draw = function() {
 
 Room.prototype.tick = function(delta) {
   Object.keys(this.players).forEach(key => {
-     if (this.players[key].ready) {
+     if (this.players[key] != null && this.players[key].ready) {
        this.players[key].tick(delta);
      }
    });
+};
+
+Room.prototype.onMouseClick = function(x, y) {
+  this.onMouseMove(x, y, false);
+
+  var offsetX = this.camera.x;
+  var offsetY = this.camera.y;
+
+  var xminusy = (this.selectedScreenX - 32 - offsetX) / Room.TILE_H;
+  var xplusy =  (this.selectedScreenY - offsetY) * 2 / Room.TILE_H;
+
+  var x = Math.floor((xminusy + xplusy) / 2);
+  var y = Math.floor((xplusy - xminusy) / 2);
+
+  if (this.isValidTile(x, y)) {
+    console.log("Request moving to x:" + x + " y:" + y);
+    this.game.communication.requestMovement(x, y);
+  }
 };
 
 Room.prototype.onMouseMove = function(x, y, isDrag) {

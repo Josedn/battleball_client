@@ -1,9 +1,22 @@
 Sprites.LOCAL_RESOURCES_URL = "./web-gallery/assets/";
-Sprites.EXTERNAL_IMAGER_URL = "http://localhost/avatarimage.php?figure=";
+Sprites.EXTERNAL_IMAGER_URL = "./avatarimage.php?figure=";
+
+Sprites.rgb2int = function(r, g, b) {
+  return (r << 16) + (g << 8) + (b);
+};
 
 function Sprites() {
   this.images = {};
   this.silhouettes = {};
+  this.colorR = this.random(0, 255);
+  this.colorG = this.random(0, 255);
+  this.colorB = this.random(0, 255);
+  this.colorId = Sprites.rgb2int(this.colorR, this.colorG, this.colorB);
+}
+
+Sprites.prototype.random = function(min, max) {
+  var num = Math.floor(Math.random()*(max-min)) + min;
+  return num;
 }
 
 Sprites.prototype.loadImage = function (key, src) {
@@ -11,7 +24,7 @@ Sprites.prototype.loadImage = function (key, src) {
     var d = new Promise(function (resolve, reject) {
         img.onload = function () {
             this.images[key] = img;
-            this.silhouettes[key] = this.generateSilhouette(img, 255, 0, 0);
+            this.silhouettes[key] = this.generateSilhouette(img, this.colorR, this.colorG, this.colorB);
             resolve(img);
         }.bind(this);
 

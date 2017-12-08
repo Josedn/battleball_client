@@ -54,6 +54,13 @@ Player.prototype.currentSprite = function() {
   return this.sprites.getImage('simple_' + this.rot);
 };
 
+Player.prototype.currentSilhouette = function() {
+  if (this.isWalking()) {
+    return this.sprites.getSilhouette('walking_' + this.rot + "_" + this.walkFrame);
+  }
+  return this.sprites.getSilhouette('simple_' + this.rot);
+};
+
 Player.prototype.nextWalkFrame = function() {
   this.walkFrame++;
   if (this.walkFrame >= 4) {

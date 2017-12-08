@@ -42,6 +42,7 @@ function Room(cols, rows, doorX, doorY, heightmap, game) {
   this.selectedScreenX = 0;
   this.selectedScreenY = 0;
   this.players = {};
+  this.selectableSprites = {};
   this.sprites = new Sprites();
   this.camera = new Camera(this);
   this.drawQueue = new PriorityQueue({
@@ -58,16 +59,24 @@ Room.prototype.getPlayer = function(id) {
   return (id in this.players) ? this.players[id] : null;
 };
 
+Room.prototype.getPlayerFromSelectId = function(id) {
+  return (id in this.selectableSprites) ? this.selectableSprites[id] : null;
+};
+
 Room.prototype.addPlayer = function(id, x, y, z, rot, name, look) {
   if (!(id in this.players)) {
     var p = new Player(id, x, y, z, rot, name, look);
     p.prepare();
     this.players[id] = p;
+    this.selectableSprites[p.sprites.colorId] = p;
   }
 };
 
 Room.prototype.removePlayer = function(id) {
   if (id in this.players) {
+    if (this.players[id].sprites.colorId in this.selectableSprites) {
+      delete(this.selectableSprites[this.players[id].sprites.colorId]);
+    }
     delete(this.players[id]);
   }
 };
@@ -176,16 +185,16 @@ Room.prototype.drawSelectedTile = function() {
   var xminusy = (this.selectedScreenX - 32 - offsetX) / Room.TILE_H;
   var xplusy =  (this.selectedScreenY - offsetY) * 2 / Room.TILE_H;
 
-  var x = Math.floor((xminusy + xplusy) / 2);
-  var y = Math.floor((xplusy - xminusy) / 2);
+  var tileX = Math.floor((xminusy + xplusy) / 2);
+  var tileY = Math.floor((xplusy - xminusy) / 2);
 
-  if (this.isValidTile(x, y)) {
+  if (this.isValidTile(tileX, tileY)) {
     //ctx.drawImage(this.sprites.getImage('selected_tile'), (x - y) * (Room.TILE_W / 2) + offsetX, (x + y) * (Room.TILE_H / 2) + offsetY);
     var prio = Room.PRIORITY_FLOOR_SELECT;
-    if (this.doorX == x && this.doorY == y) {
+    if (this.doorX == tileX && this.doorY == tileY) {
       prio = Room.PRIORITY_DOOR_FLOOR;
     }
-    this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('selected_tile'), (x - y) * (Room.TILE_W / 2) + offsetX, (x + y) * (Room.TILE_H / 2) + offsetY, prio));
+    this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('selected_tile'), (tileX - tileY) * (Room.TILE_W / 2) + offsetX, (tileX + tileY) * (Room.TILE_H / 2) + offsetY, prio));
   }
 };
 
@@ -216,7 +225,7 @@ Room.prototype.drawPlayer = function(player) {
   //this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('shadow_tile'), mapPositionX, mapPositionY - ((this.heightmap[Math.floor(player.x)][Math.floor(player.y)] - 1) * Room.TILE_H), shadowPrio));
   if (player.ready) {
     //ctx.drawImage(player.currentSprite(), mapPositionX, mapPositionY - 85 - (player.z * Room.TILE_H));
-    this.drawQueue.queue(new DrawableSprite(player.currentSprite(), mapPositionX, mapPositionY - 85 - (player.z * Room.TILE_H), prio));
+    this.drawQueue.queue(new DrawableSprite(player.currentSilhouette(), mapPositionX, mapPositionY - 85 - (player.z * Room.TILE_H), prio));
   } else {
     //ctx.drawImage(this.sprites.getImage('ghost' + player.rot), mapPositionX + 17, mapPositionY - 58 - (player.z * Room.TILE_H));
     this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('ghost' + player.rot), mapPositionX + 17, mapPositionY - 58 - (player.z * Room.TILE_H), prio));
@@ -244,21 +253,39 @@ Room.prototype.tick = function(delta) {
    });
 };
 
+Room.prototype.onSelectPlayer = function(player) {
+  console.log(player.name + " is selected!!1");
+  
+};
+
+Room.prototype.trySelectPlayer = function(x, y) {
+  var p = this.game.ctx.getImageData(x, y, 1, 1).data;
+
+  var selectedPlayer = this.getPlayerFromSelectId(Sprites.rgb2int(p[0], p[1], p[2]));
+  if (selectedPlayer != null) {
+    this.onSelectPlayer(selectedPlayer);
+    return true;
+  }
+  return false;
+};
+
 Room.prototype.onMouseClick = function(x, y) {
-  this.onMouseMove(x, y, false);
+  if (!this.trySelectPlayer(x, y)) {
+    this.onMouseMove(x, y, false);
 
-  var offsetX = this.camera.x;
-  var offsetY = this.camera.y;
+    var offsetX = this.camera.x;
+    var offsetY = this.camera.y;
 
-  var xminusy = (this.selectedScreenX - 32 - offsetX) / Room.TILE_H;
-  var xplusy =  (this.selectedScreenY - offsetY) * 2 / Room.TILE_H;
+    var xminusy = (this.selectedScreenX - 32 - offsetX) / Room.TILE_H;
+    var xplusy =  (this.selectedScreenY - offsetY) * 2 / Room.TILE_H;
 
-  var x = Math.floor((xminusy + xplusy) / 2);
-  var y = Math.floor((xplusy - xminusy) / 2);
+    var tileX = Math.floor((xminusy + xplusy) / 2);
+    var tileY = Math.floor((xplusy - xminusy) / 2);
 
-  if (this.isValidTile(x, y)) {
-    console.log("Request moving to x:" + x + " y:" + y);
-    this.game.communication.requestMovement(x, y);
+    if (this.isValidTile(tileX, tileY)) {
+      console.log("Request moving to x:" + tileX + " y:" + tileY);
+      this.game.communication.requestMovement(tileX, tileY);
+    }
   }
 };
 

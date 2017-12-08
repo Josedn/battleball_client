@@ -37,6 +37,11 @@ function closeBox() {
 Game.run = function(canvas) {
   this.canvas = canvas;
   this.ctx = this.canvas.getContext('2d');
+
+  this.auxCanvas = document.createElement('canvas');
+  this.auxCanvas.style.display = 'none';
+  this.auxCtx = this.auxCanvas.getContext('2d');
+
   this._previousElapsed = 0;
   this.queuedLogin = false;
   this.onResize();
@@ -52,6 +57,10 @@ Game.tryConnect = function() {
 Game.draw = function() {
   this.ctx.fillStyle = 'rgba(0, 0, 0, 1)';
   this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+  this.auxCtx.fillStyle = 'rgba(0, 0, 0, 1)';
+  this.auxCtx.fillRect(0, 0, this.auxCanvas.width, this.auxCanvas.height);
+
   if (this.currentRoom != null && this.currentRoom.ready) {
     this.currentRoom.draw();
   }
@@ -145,6 +154,9 @@ Game.onMouseClick = function(x, y) {
 Game.onResize = function() {
   this.canvas.width = window.innerWidth;
   this.canvas.height = window.innerHeight;
+
+  this.auxCanvas.width = window.innerWidth;
+  this.auxCanvas.height = window.innerHeight;
   if (this.currentRoom != null) {
     this.currentRoom.onResize();
   }

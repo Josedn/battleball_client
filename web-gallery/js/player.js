@@ -3,17 +3,10 @@ Player.SPEED = 2; //Squares per second
 function Player(id, x, y, z, rot, name, look)
 {
   this.id = id;
-  this.x = x;
-  this.y = y;
-  this.z = z;
-  this.rot = rot;
-  this.name = name;
-  this.look = look;
-  this.targetX = x;
-  this.targetY = y;
   this.ready = false;
   this.elapsedTime = 0;
   this.walkFrame = 0;
+  this.updateParams(x, y, z, rot, name, look);
   this.sprites = new Sprites();
 }
 
@@ -83,6 +76,17 @@ Player.prototype.setMovement = function(x, y, rot) {
   this.targetX = x;
   this.targetY = y;
   this.rot = rot;
+};
+
+Player.prototype.updateParams = function(x, y, z, rot, name, look) {
+  this.x = x;
+  this.y = y;
+  this.targetX = x;
+  this.targetY = y;
+  this.z = z;
+  this.rot = rot;
+  this.name = name;
+  this.look = look;
 };
 
 Player.prototype.move = function(delta) {

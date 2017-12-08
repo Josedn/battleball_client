@@ -2,6 +2,7 @@ Communication.OUTGOING_LOGIN = 1;
 Communication.OUTGOING_REQUEST_MAP = 2;
 Communication.OUTGOING_REQUEST_MOVEMENT = 7;
 Communication.OUTGOING_REQUEST_CHAT = 9;
+Communication.OUTGOING_REQUEST_LOOK_AT = 12;
 
 Communication.INCOMING_LOGIN_OK = 3;
 Communication.INCOMING_MAP_DATA = 4;
@@ -38,6 +39,12 @@ Communication.prototype.requestChat = function(chat) {
     message.appendString(chat);
     this.game.connection.sendMessage(message);
   }
+};
+
+Communication.prototype.requestLookAt = function(userId) {
+  var message = new ClientMessage(Communication.OUTGOING_REQUEST_LOOK_AT);
+  message.appendInt(userId);
+  this.game.connection.sendMessage(message);
 };
 
 Communication.prototype.handleMessage = function(data) {
@@ -101,7 +108,7 @@ Communication.prototype.handlePlayers = function(request) {
     var look = request.popString();
 
     if (this.game.currentRoom != null) {
-      this.game.currentRoom.addPlayer(id, x, y, z, rot, name, look);
+      this.game.currentRoom.setPlayer(id, x, y, z, rot, name, look);
     }
   }
 };

@@ -131,5 +131,6 @@ Communication.prototype.handleRemovePlayer = function(request) {
 };
 
 Communication.prototype.handleChat = function(request) {
-
+  var userId = request.popInt();
+  var text = request.popString();
 };

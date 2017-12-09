@@ -212,7 +212,7 @@ Room.prototype.drawPlayers = function () {
     if (this.players[key] != null) {
       this.drawPlayer(this.players[key]);
     }
-   });
+  });
 };
 
 Room.prototype.drawPlayer = function(player) {
@@ -315,6 +315,13 @@ Room.prototype.drawSign = function(text, x, y) {
   this.drawQueue.queue(new DrawableSprite(tempCanvas, null, centeredX, y, Room.PRIORITY_SIGN));
 };
 
+Room.prototype.checkSelectedUserSign = function() {
+  var selectedPlayer = this.trySelectPlayer(this.selectedScreenX, this.selectedScreenY);
+  if (selectedPlayer != null ) {
+    selectedPlayer.showSign(0.2);
+  }
+}
+
 Room.prototype.draw = function() {
   this.drawWall();
   this.drawFloor();
@@ -334,35 +341,32 @@ Room.prototype.draw = function() {
 
 Room.prototype.tick = function(delta) {
   Object.keys(this.players).forEach(key => {
-     if (this.players[key] != null) {
-       this.players[key].tick(delta);
-     }
-   });
+    if (this.players[key] != null) {
+      this.players[key].tick(delta);
+    }
+  });
+  this.checkSelectedUserSign();
 };
 
-Room.prototype.onSelectPlayer = function(player, click) {
-  if (click) {
-    this.game.communication.requestLookAt(player.id);
-    player.showSign(5);
-  } else {
-    player.showSign(0.5);
-  }
+Room.prototype.onSelectPlayer = function(player) {
+  this.game.communication.requestLookAt(player.id);
+  player.showSign(5);
 };
 
-Room.prototype.trySelectPlayer = function(x, y, click) {
+Room.prototype.trySelectPlayer = function(x, y) {
   var p = this.game.auxCtx.getImageData(x, y, 1, 1).data;
-
   var selectedPlayer = this.getPlayerFromSelectId(Sprites.rgb2int(p[0], p[1], p[2]));
   if (selectedPlayer != null) {
-    this.onSelectPlayer(selectedPlayer, click);
-    return true;
+    return selectedPlayer;
   }
-  return false;
+  return null;
 };
 
 Room.prototype.onMouseClick = function(x, y) {
-  if (!this.trySelectPlayer(x, y, true)) {
-
+  var selectedPlayer = this.trySelectPlayer(x, y);
+  if (selectedPlayer != null ) {
+    this.onSelectPlayer(selectedPlayer);
+  } else {
     var offsetX = this.camera.x;
     var offsetY = this.camera.y;
 
@@ -389,6 +393,4 @@ Room.prototype.onMouseMove = function(x, y, isDrag) {
 
   this.selectedScreenX = x;
   this.selectedScreenY = y;
-
-  this.trySelectPlayer(x, y, false);
 };

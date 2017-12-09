@@ -8,9 +8,10 @@ Room.PRIORITY_DOOR_FLOOR_PLAYER = 4;
 Room.PRIORITY_DOOR_WALL = 5;
 Room.PRIORITY_WALL = 6;
 Room.PRIORITY_FLOOR = 7;
-Room.PRIORITY_FLOOR_SELECT = 8;
-Room.PRIORITY_PLAYER_SHADOW = 9;
+Room.PRIORITY_PLAYER_SHADOW = 8;
+Room.PRIORITY_FLOOR_SELECT = 9;
 Room.PRIORITY_PLAYER = 10;
+Room.PRIORITY_SIGN = 11;
 
 function DrawableSprite(sprite, selectableSprite, x, y, priority) {
   this.sprite = sprite;
@@ -28,10 +29,8 @@ function Camera(room) {
 Camera.prototype.reset = function() {
   this.width = this.room.game.canvas.width;
   this.height = this.room.game.canvas.height;
-  //this.x = (this.width - (Room.TILE_H * (this.room.cols - this.room.rows + 2))) / 2;
-  //this.y = (this.height - ((this.room.cols + this.room.rows) * Room.TILE_H / 2) + 42) / 2;
-  this.x = 976; //Temporal
-  this.y = 368; //Temporal
+  this.x = Math.round((this.width - (Room.TILE_H * (this.room.cols - this.room.rows + 3))) / 2);
+  this.y = Math.round((this.height - ((this.room.cols + this.room.rows) * Room.TILE_H / 2) + 114) / 2);
 };
 
 function Room(cols, rows, doorX, doorY, heightmap, game) {
@@ -136,7 +135,11 @@ Room.prototype.loadSprites = function() {
     this.sprites.loadImage('ghost4', Sprites.LOCAL_RESOURCES_URL + 'ghost4.png'),
     this.sprites.loadImage('ghost5', Sprites.LOCAL_RESOURCES_URL + 'ghost5.png'),
     this.sprites.loadImage('ghost6', Sprites.LOCAL_RESOURCES_URL + 'ghost6.png'),
-    this.sprites.loadImage('ghost7', Sprites.LOCAL_RESOURCES_URL + 'ghost7.png')
+    this.sprites.loadImage('ghost7', Sprites.LOCAL_RESOURCES_URL + 'ghost7.png'),
+    this.sprites.loadImage('sign_left', Sprites.LOCAL_RESOURCES_URL + 'sign_left.png'),
+    this.sprites.loadImage('sign_right', Sprites.LOCAL_RESOURCES_URL + 'sign_right.png'),
+    this.sprites.loadImage('sign_center', Sprites.LOCAL_RESOURCES_URL + 'sign_center.png'),
+    this.sprites.loadImage('sign_bite', Sprites.LOCAL_RESOURCES_URL + 'sign_bite.png')
   ];
 };
 
@@ -198,9 +201,9 @@ Room.prototype.drawSelectedTile = function() {
     //ctx.drawImage(this.sprites.getImage('selected_tile'), (x - y) * (Room.TILE_W / 2) + offsetX, (x + y) * (Room.TILE_H / 2) + offsetY);
     var prio = Room.PRIORITY_FLOOR_SELECT;
     if (this.doorX == tileX && this.doorY == tileY) {
-      prio = Room.PRIORITY_DOOR_FLOOR;
+      prio = Room.PRIORITY_DOOR_FLOOR_SELECT;
     }
-    this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('selected_tile'), null, (tileX - tileY) * (Room.TILE_W / 2) + offsetX, (tileX + tileY) * (Room.TILE_H / 2) + offsetY, prio));
+    this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('selected_tile'), null, (tileX - tileY) * (Room.TILE_W / 2) + offsetX, (tileX + tileY) * (Room.TILE_H / 2) + offsetY - 3, prio));
   }
 };
 
@@ -231,11 +234,52 @@ Room.prototype.drawPlayer = function(player) {
   this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('shadow_tile'), null, mapPositionX, mapPositionY - ((this.heightmap[Math.floor(player.x)][Math.floor(player.y)] - 1) * Room.TILE_H), shadowPrio));
   if (player.ready) {
     //ctx.drawImage(player.currentSprite(), mapPositionX, mapPositionY - 85 - (player.z * Room.TILE_H));
+    if (player.rot == 6 || player.rot == 5 || player.rot == 4) {
+      mapPositionX += 3;
+    }
     this.drawQueue.queue(new DrawableSprite(player.currentSprite(), player.currentSilhouette(), mapPositionX, mapPositionY - 85 - (player.z * Room.TILE_H), prio));
   } else {
     //ctx.drawImage(this.sprites.getImage('ghost' + player.rot), mapPositionX + 17, mapPositionY - 58 - (player.z * Room.TILE_H));
     this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('ghost' + player.rot), null, mapPositionX + 17, mapPositionY - 58 - (player.z * Room.TILE_H), prio));
   }
+  if (player.shouldShowSign()) {
+    this.drawSign(player.name, mapPositionX + 22, mapPositionY - 107);
+  }
+};
+
+Room.prototype.drawSign = function(text, x, y) {
+
+  var tempCanvas = document.createElement('canvas');
+  var tempCtx = tempCanvas.getContext('2d');
+
+  tempCtx.font = "12px Ubuntu";
+  tempCtx.textBaseline = "top";
+  tempCtx.fillStyle = "white";
+
+  var textWidth = Math.round(tempCtx.measureText(text).width) - 13;
+  var currentWidth = 0;
+
+  var centeredX = x - Math.floor((Math.max(textWidth, 0) + 40) / 2);
+
+  tempCtx.drawImage(this.sprites.getImage('sign_left'), currentWidth, 0);
+  currentWidth += 20;
+
+  for (var i = 0; i < textWidth / 2; i++) {
+    tempCtx.drawImage(this.sprites.getImage('sign_bite'), currentWidth++, 0);
+  }
+
+  tempCtx.drawImage(this.sprites.getImage('sign_center'), currentWidth, 0);
+  currentWidth += 13;
+
+  for (var i = 0; i < textWidth / 2; i++) {
+    tempCtx.drawImage(this.sprites.getImage('sign_bite'), currentWidth++, 0);
+  }
+
+  tempCtx.drawImage(this.sprites.getImage('sign_right'), currentWidth, 0);
+
+  tempCtx.fillText(text, 20, 6);
+
+  this.drawQueue.queue(new DrawableSprite(tempCanvas, null, centeredX, y, Room.PRIORITY_SIGN));
 };
 
 Room.prototype.draw = function() {
@@ -263,31 +307,34 @@ Room.prototype.tick = function(delta) {
    });
 };
 
-Room.prototype.onSelectPlayer = function(player) {
-  console.log(player.name + " is selected!!1");
-  this.game.communication.requestLookAt(player.id);
+Room.prototype.onSelectPlayer = function(player, click) {
+  if (click) {
+    this.game.communication.requestLookAt(player.id);
+    player.showSign(5);
+  } else {
+    player.showSign(0.5);
+  }
 };
 
-Room.prototype.trySelectPlayer = function(x, y) {
+Room.prototype.trySelectPlayer = function(x, y, click) {
   var p = this.game.auxCtx.getImageData(x, y, 1, 1).data;
 
   var selectedPlayer = this.getPlayerFromSelectId(Sprites.rgb2int(p[0], p[1], p[2]));
   if (selectedPlayer != null) {
-    this.onSelectPlayer(selectedPlayer);
+    this.onSelectPlayer(selectedPlayer, click);
     return true;
   }
   return false;
 };
 
 Room.prototype.onMouseClick = function(x, y) {
-  if (!this.trySelectPlayer(x, y)) {
-    this.onMouseMove(x, y, false);
+  if (!this.trySelectPlayer(x, y, true)) {
 
     var offsetX = this.camera.x;
     var offsetY = this.camera.y;
 
-    var xminusy = (this.selectedScreenX - 32 - offsetX) / Room.TILE_H;
-    var xplusy =  (this.selectedScreenY - offsetY) * 2 / Room.TILE_H;
+    var xminusy = (x - 32 - offsetX) / Room.TILE_H;
+    var xplusy =  (y - offsetY) * 2 / Room.TILE_H;
 
     var tileX = Math.floor((xminusy + xplusy) / 2);
     var tileY = Math.floor((xplusy - xminusy) / 2);
@@ -309,4 +356,6 @@ Room.prototype.onMouseMove = function(x, y, isDrag) {
 
   this.selectedScreenX = x;
   this.selectedScreenY = y;
+
+  this.trySelectPlayer(x, y, false);
 };

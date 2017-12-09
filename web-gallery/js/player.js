@@ -6,8 +6,10 @@ function Player(id, x, y, z, rot, name, look)
   this.ready = false;
   this.elapsedTime = 0;
   this.walkFrame = 0;
+  this.showSignCounter = 0;
   this.updateParams(x, y, z, rot, name, look);
   this.sprites = new Sprites();
+  this.showSign(10);
 }
 
 Player.prototype.prepare = function() {
@@ -70,7 +72,18 @@ Player.prototype.tick = function(delta) {
     }
     this.move(delta);
   }
+  if (this.showSignCounter > 0) {
+    this.showSignCounter -= delta;
+  }
 }
+
+Player.prototype.showSign = function(seconds) {
+  this.showSignCounter = seconds * 1000;
+}
+
+Player.prototype.shouldShowSign = function() {
+  return this.showSignCounter > 0;
+};
 
 Player.prototype.setMovement = function(x, y, rot) {
   this.targetX = x;

@@ -18,6 +18,12 @@ function onLogin() {
   Game.queueLogin(username, look);
 }
 
+function onChatSubmit() {
+  var chat_text = document.getElementById("input_chat").value;
+  document.getElementById("input_chat").value = "";
+  Game.requestChat(chat_text);
+}
+
 function showBox() {
   var main_wrapper = document.getElementById("main_wrapper");
   main_wrapper.style.display = 'block';
@@ -87,6 +93,12 @@ Game.queueLogin = function(username, look) {
   } else {
     this.queuedLogin = true;
     this.tryConnect();
+  }
+};
+
+Game.requestChat = function(chat) {
+  if (this.currentRoom != null && this.currentRoom.ready) {
+    this.communication.requestChat(chat);
   }
 };
 

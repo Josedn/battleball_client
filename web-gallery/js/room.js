@@ -17,11 +17,36 @@ DrawableSprite.PRIORITY_PLAYER = 10;
 DrawableSprite.PRIORITY_SIGN = 11;
 DrawableSprite.PRIORITY_CHAT = 12;
 
+Chat.INITIAL_OFFSET_Y = -123;
+Chat.SPEED = 92; //Pixels per seconds
+Chat.ROLL_PERIOD = 5; //Seconds
+
 function Chat(player, text, x, y) {
   this.player = player;
   this.text = text;
   this.x = x;
   this.y = y;
+  this.targetY = y;
+}
+
+Chat.prototype.move = function(delta) {
+  delta = delta / 1000;
+  if (this.targetY > this.y)
+  {
+    this.y += 92 * delta;
+    if (this.y > this.targetY)
+    {
+      this.y = this.targetY;
+    }
+  }
+  else if (this.targetY < this.y)
+  {
+    this.y -= 92 * delta;
+    if (this.y < this.targetY)
+    {
+      this.y = this.targetY;
+    }
+  }
 }
 
 function DrawableSprite(sprite, selectableSprite, x, y, priority) {
@@ -59,6 +84,7 @@ function Room(cols, rows, doorX, doorY, heightmap, game) {
   this.selectableSprites = {};
   this.sprites = new Sprites();
   this.camera = new Camera(this);
+  this.chatUpdateCounter = 0;
   this.drawQueue = new PriorityQueue({
     comparator: function(a, b) {
       if (a.priority != b.priority) {
@@ -84,7 +110,6 @@ Room.prototype.setPlayer = function(id, x, y, z, rot, name, look) {
     p.prepare();
     this.players[id] = p;
     this.selectableSprites[p.sprites.colorId] = p;
-    this.addChat(id, "Holaa");
   } else {
     player.updateParams(x, y, z, rot, name, look);
   }
@@ -163,9 +188,9 @@ Room.prototype.loadSprites = function() {
 Room.prototype.addChat = function(userId, text) {
   var player = this.getPlayer(userId);
   if (player != null) {
-    var mapPositionX = (player.x - player.y) * Room.TILE_H + this.camera.x;
-    var mapPositionY = (player.x + player.y) * Room.TILE_H / 2 + this.camera.y;
-    this.chats.push(new Chat(player, text,  mapPositionX + 22, mapPositionY - 157));
+    var mapPositionX = Math.round((player.x - player.y) * Room.TILE_H);
+    this.rollChats();
+    this.chats.push(new Chat(player, text, mapPositionX + 22, Chat.INITIAL_OFFSET_Y));
   }
 };
 
@@ -265,7 +290,7 @@ Room.prototype.drawPlayer = function(player) {
   }
 };
 
-Room.prototype.drawChat = function(player, text, x, y) {
+Room.prototype.drawChat = function(chat) {
   var tempCanvas = document.createElement('canvas');
   var tempCtx = tempCanvas.getContext('2d');
 
@@ -273,15 +298,15 @@ Room.prototype.drawChat = function(player, text, x, y) {
   tempCtx.textBaseline = "top";
   tempCtx.fillStyle = "black";
 
-  var username = player.name;
-  var headSprite = player.headSprite();
+  var username = chat.player.name;
+  var text = chat.text;
 
   var usernameWidth = Math.round(tempCtx.measureText(username + ": ").width);
   tempCtx.font = Room.FONT;
   var textWidth = Math.round(tempCtx.measureText(text).width);
 
   var currentWidth = 0;
-  var centeredX = x - Math.floor((textWidth + 41) / 2);
+  var centeredX = chat.x - Math.floor((usernameWidth + textWidth + 41) / 2);
 
   tempCtx.drawImage(this.sprites.getImage('chat_left'), currentWidth, 0);
   currentWidth += 31;
@@ -298,12 +323,16 @@ Room.prototype.drawChat = function(player, text, x, y) {
   tempCtx.font = Room.FONT;
   tempCtx.fillText(text, 31 + usernameWidth, 5);
 
-  tempCtx.drawImage(this.sprites.getImage('chat_arrow'), 80, 23);
-  if (headSprite != null) {
-    tempCtx.drawImage(headSprite, 1, -3);
+  if (chat.player.headSprite() != null) {
+    tempCtx.drawImage(chat.player.headSprite(), 1, -3);
   }
 
-  this.drawQueue.queue(new DrawableSprite(tempCanvas, null, centeredX, y, DrawableSprite.PRIORITY_CHAT));
+  this.drawQueue.queue(new DrawableSprite(tempCanvas, null, centeredX + this.camera.x, chat.y + this.camera.y, DrawableSprite.PRIORITY_CHAT));
+  var arrowPositionX = (chat.player.x - chat.player.y) * Room.TILE_H + 27;
+  var lefterBound = centeredX + 4;
+  var righterBound = lefterBound + currentWidth - 8;
+  arrowPositionX = Math.round(Math.max(lefterBound, Math.min(righterBound, arrowPositionX)));
+  this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('chat_arrow'), null, arrowPositionX + this.camera.x, chat.y + this.camera.y + 23, DrawableSprite.PRIORITY_CHAT));
 };
 
 Room.prototype.drawSign = function(text, x, y) {
@@ -347,15 +376,27 @@ Room.prototype.tickSelectedUserSign = function() {
   }
 };
 
-Room.prototype.tickChats = function() {
+Room.prototype.rollChats = function() {
   this.chats.forEach(chat => {
-    //this.drawChat(chat.username, chat.text, chat.headSprite, chat.x, chat.y);
+    chat.targetY = chat.y - 23;
+  });
+  this.chatUpdateCounter = 0;
+};
+
+Room.prototype.tickChats = function(delta) {
+  this.chatUpdateCounter += delta;
+  if (this.chatUpdateCounter > Chat.ROLL_PERIOD * 1000) {
+    this.rollChats();
+    this.chatUpdateCounter = 0;
+  }
+  this.chats.forEach(chat => {
+    chat.move(delta);
   });
 };
 
 Room.prototype.drawChats = function() {
   this.chats.forEach(chat => {
-    this.drawChat(chat.player, chat.text, chat.x, chat.y);
+    this.drawChat(chat);
   });
 };
 
@@ -383,8 +424,8 @@ Room.prototype.tick = function(delta) {
       this.players[key].tick(delta);
     }
   });
+  this.tickChats(delta);
   this.tickSelectedUserSign();
-  this.tickChats();
 };
 
 Room.prototype.onSelectPlayer = function(player) {

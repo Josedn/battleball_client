@@ -4,8 +4,8 @@ function Player(id, x, y, z, rot, name, look)
 {
   this.id = id;
   this.ready = false;
-  this.elapsedTime = 0;
   this.walkFrame = 0;
+  this.walkFrameCounter = 0;
   this.showSignCounter = 0;
   this.updateParams(x, y, z, rot, name, look);
   this.sprites = new Sprites();
@@ -70,10 +70,10 @@ Player.prototype.nextWalkFrame = function() {
 
 Player.prototype.tick = function(delta) {
   if (this.isWalking()) {
-    this.elapsedTime += delta;
-    if (this.elapsedTime >= 100) {
+    this.walkFrameCounter += delta;
+    if (this.walkFrameCounter >= 100) {
       this.nextWalkFrame();
-      this.elapsedTime = 0;
+      this.walkFrameCounter = 0;
     }
     this.move(delta);
   }

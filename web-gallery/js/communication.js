@@ -133,4 +133,7 @@ Communication.prototype.handleRemovePlayer = function(request) {
 Communication.prototype.handleChat = function(request) {
   var userId = request.popInt();
   var text = request.popString();
+  if (this.game.currentRoom != null) {
+    this.game.currentRoom.addChat(userId, text);
+  }
 };

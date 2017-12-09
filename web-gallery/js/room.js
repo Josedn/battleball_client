@@ -12,6 +12,7 @@ Room.PRIORITY_PLAYER_SHADOW = 8;
 Room.PRIORITY_FLOOR_SELECT = 9;
 Room.PRIORITY_PLAYER = 10;
 Room.PRIORITY_SIGN = 11;
+Room.PRIORITY_CHAT = 12;
 
 function DrawableSprite(sprite, selectableSprite, x, y, priority) {
   this.sprite = sprite;
@@ -139,28 +140,29 @@ Room.prototype.loadSprites = function() {
     this.sprites.loadImage('sign_left', Sprites.LOCAL_RESOURCES_URL + 'sign_left.png'),
     this.sprites.loadImage('sign_right', Sprites.LOCAL_RESOURCES_URL + 'sign_right.png'),
     this.sprites.loadImage('sign_center', Sprites.LOCAL_RESOURCES_URL + 'sign_center.png'),
-    this.sprites.loadImage('sign_bite', Sprites.LOCAL_RESOURCES_URL + 'sign_bite.png')
+    this.sprites.loadImage('sign_bite', Sprites.LOCAL_RESOURCES_URL + 'sign_bite.png'),
+    this.sprites.loadImage('chat_left', Sprites.LOCAL_RESOURCES_URL + 'chat_left.png'),
+    this.sprites.loadImage('chat_right', Sprites.LOCAL_RESOURCES_URL + 'chat_right.png'),
+    this.sprites.loadImage('chat_arrow', Sprites.LOCAL_RESOURCES_URL + 'chat_arrow.png'),
+    this.sprites.loadImage('chat_bite', Sprites.LOCAL_RESOURCES_URL + 'chat_bite.png')
   ];
 };
 
 Room.prototype.drawWall = function() {
-    // mapX and mapY are offsets to make sure we can position the map as we want.
+  // mapX and mapY are offsets to make sure we can position the map as we want.
   var offsetX = this.camera.x;
   var offsetY = this.camera.y;
 
   for (var i = 0; i < this.rows; i++) {
     if (i + 1 == this.doorY) {
-      //ctx.drawImage(this.sprites.getImage('room_door_extended'), (1 - i) * (Room.TILE_W / 2) + offsetX - 40, (i + 1) * (Room.TILE_H / 2) + offsetY - 119);
       this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('room_door_extended'), null, (1 - i) * (Room.TILE_W / 2) + offsetX - 40, (i + 1) * (Room.TILE_H / 2) + offsetY - 119, Room.PRIORITY_WALL));
     }
     else if (i != this.doorY && i + 1) {
-      //ctx.drawImage(this.sprites.getImage('room_wall_l'), (1 - i) * (Room.TILE_W / 2) + offsetX - 8, (i + 1) * (Room.TILE_H / 2) + offsetY - 119);
       this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('room_wall_l'), null, (1 - i) * (Room.TILE_W / 2) + offsetX - 8, (i + 1) * (Room.TILE_H / 2) + offsetY - 119, Room.PRIORITY_WALL));
     }
   }
 
   for (var i = 1; i < this.cols; i++) {
-    //ctx.drawImage(this.sprites.getImage('room_wall_r'), (i - 1) * (Room.TILE_W / 2) + offsetX + 64, (i + 1) * (Room.TILE_H / 2) + offsetY - 135);
     this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('room_wall_r'), null, (i - 1) * (Room.TILE_W / 2) + offsetX + 64, (i + 1) * (Room.TILE_H / 2) + offsetY - 135, Room.PRIORITY_WALL));
   }
 };
@@ -181,7 +183,6 @@ Room.prototype.drawFloor = function() {
         } else {
           this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('room_tile'), null, (i - j) * (Room.TILE_W / 2) + offsetX, (i + j) * (Room.TILE_H / 2) + offsetY - ((tile - 1) * Room.TILE_H), Room.PRIORITY_FLOOR));
         }
-        //ctx.drawImage(this.sprites.getImage('room_tile'), (i - j) * (Room.TILE_W / 2) + offsetX, (i + j) * (Room.TILE_H / 2) + offsetY - ((tile - 1) * Room.TILE_H));
       }
     }
   }
@@ -198,7 +199,6 @@ Room.prototype.drawSelectedTile = function() {
   var tileY = Math.floor((xplusy - xminusy) / 2);
 
   if (this.isValidTile(tileX, tileY)) {
-    //ctx.drawImage(this.sprites.getImage('selected_tile'), (x - y) * (Room.TILE_W / 2) + offsetX, (x + y) * (Room.TILE_H / 2) + offsetY);
     var prio = Room.PRIORITY_FLOOR_SELECT;
     if (this.doorX == tileX && this.doorY == tileY) {
       prio = Room.PRIORITY_DOOR_FLOOR_SELECT;
@@ -230,16 +230,14 @@ Room.prototype.drawPlayer = function(player) {
     shadowPrio = Room.PRIORITY_DOOR_FLOOR_PLAYER_SHADOW;
   }
 
-  //ctx.drawImage(this.sprites.getImage('shadow_tile'), mapPositionX, mapPositionY - ((this.heightmap[Math.floor(player.x)][Math.floor(player.y)] - 1) * Room.TILE_H));
   this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('shadow_tile'), null, mapPositionX, mapPositionY - ((this.heightmap[Math.floor(player.x)][Math.floor(player.y)] - 1) * Room.TILE_H), shadowPrio));
   if (player.ready) {
-    //ctx.drawImage(player.currentSprite(), mapPositionX, mapPositionY - 85 - (player.z * Room.TILE_H));
     if (player.rot == 6 || player.rot == 5 || player.rot == 4) {
       mapPositionX += 3;
     }
     this.drawQueue.queue(new DrawableSprite(player.currentSprite(), player.currentSilhouette(), mapPositionX, mapPositionY - 85 - (player.z * Room.TILE_H), prio));
+    this.drawChat("Lawyer", "ghjhgjhgjgh", player.headSprite(), mapPositionX + 22, mapPositionY - 207);
   } else {
-    //ctx.drawImage(this.sprites.getImage('ghost' + player.rot), mapPositionX + 17, mapPositionY - 58 - (player.z * Room.TILE_H));
     this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('ghost' + player.rot), null, mapPositionX + 17, mapPositionY - 58 - (player.z * Room.TILE_H), prio));
   }
   if (player.shouldShowSign()) {
@@ -247,8 +245,43 @@ Room.prototype.drawPlayer = function(player) {
   }
 };
 
-Room.prototype.drawSign = function(text, x, y) {
+Room.prototype.drawChat = function(username, text, headSprite, x, y) {
+  var tempCanvas = document.createElement('canvas');
+  var tempCtx = tempCanvas.getContext('2d');
 
+  tempCtx.font = "bold 12px Ubuntu";
+  tempCtx.textBaseline = "top";
+  tempCtx.fillStyle = "black";
+
+  var usernameWidth = Math.round(tempCtx.measureText(username + ": ").width);
+  tempCtx.font = "12px Ubuntu";
+  var textWidth = Math.round(tempCtx.measureText(text).width);
+
+  var currentWidth = 0;
+  var centeredX = x - Math.floor((textWidth + 41) / 2);
+
+  tempCtx.drawImage(this.sprites.getImage('chat_left'), currentWidth, 0);
+  currentWidth += 31;
+
+  for (var i = 0; i < usernameWidth + textWidth; i++) {
+    tempCtx.drawImage(this.sprites.getImage('chat_bite'), currentWidth++, 0);
+  }
+
+  tempCtx.drawImage(this.sprites.getImage('chat_right'), currentWidth, 0);
+
+  tempCtx.font = "bold 12px Ubuntu";
+  tempCtx.fillText(username + ": ", 31, 5);
+
+  tempCtx.font = "12px Ubuntu";
+  tempCtx.fillText(text, 31 + usernameWidth, 5);
+
+  tempCtx.drawImage(this.sprites.getImage('chat_arrow'), 80, 23);
+  tempCtx.drawImage(headSprite, 1, -3);
+
+  this.drawQueue.queue(new DrawableSprite(tempCanvas, null, centeredX, y, Room.PRIORITY_CHAT));
+};
+
+Room.prototype.drawSign = function(text, x, y) {
   var tempCanvas = document.createElement('canvas');
   var tempCtx = tempCanvas.getContext('2d');
 

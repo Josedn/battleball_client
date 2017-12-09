@@ -34,7 +34,8 @@ Player.prototype.prepare = function() {
 Player.prototype.loadSprites = function() {
   return [
     this.sprites.loadAllSimpleAvatar("simple", this.look),
-    this.sprites.loadAllWalkingAvatar("walking", this.look)
+    this.sprites.loadAllWalkingAvatar("walking", this.look),
+    this.sprites.loadHeadAvatar("head", this.look)
   ];
 };
 
@@ -47,6 +48,10 @@ Player.prototype.currentSprite = function() {
     return this.sprites.getImage('walking_' + this.rot + "_" + this.walkFrame);
   }
   return this.sprites.getImage('simple_' + this.rot);
+};
+
+Player.prototype.headSprite = function() {
+  return this.sprites.getImage('head');
 };
 
 Player.prototype.currentSilhouette = function() {

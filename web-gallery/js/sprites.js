@@ -55,6 +55,11 @@ Sprites.prototype.loadWalkingAvatar = function (key, look, direction, walkFrame)
   return this.loadImage(key, totalUrl);
 };
 
+Sprites.prototype.loadHeadAvatar = function(key, look) {
+  var totalUrl = Sprites.EXTERNAL_IMAGER_URL + look + '&direction=2&head_direction=2&size=s&headonly=1';
+  return this.loadImage(key, totalUrl);
+};
+
 Sprites.prototype.loadAllSimpleAvatar = function (key, look) {
   var p = [];
   for (var i = 0; i <= 7; i++) {

@@ -319,7 +319,8 @@ Room.prototype.drawFurni = function() {
   var mapPositionY = (this.furni.x + this.furni.y) * Room.TILE_H / 2 + offsetY;
 
   if (this.furni.ready) {
-    this.drawQueue.queue(new DrawableSprite(this.furni.currentSprite(), null, mapPositionX + 4, mapPositionY - 38 - (this.furni.z * Room.TILE_H), DrawableSprite.PRIORITY_PLAYER));
+    this.drawQueue.queue(new IsometricDrawableSprite(this.furni.currentSprite(), null, this.furni.x, this.furni.y, 4, -38 - (this.furni.z * Room.TILE_H), DrawableSprite.PRIORITY_PLAYER));
+    //this.drawQueue.queue(new DrawableSprite(this.furni.currentSprite(), null, mapPositionX + 4, mapPositionY - 38 - (this.furni.z * Room.TILE_H), DrawableSprite.PRIORITY_PLAYER));
   }
 };
 

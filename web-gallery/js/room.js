@@ -28,8 +28,10 @@ function Camera(room) {
 Camera.prototype.reset = function() {
   this.width = this.room.game.canvas.width;
   this.height = this.room.game.canvas.height;
-  this.x = (this.width - (Room.TILE_H * (this.room.cols - this.room.rows + 2))) / 2;
-  this.y = (this.height - (Room.TILE_H * this.room.cols)) / 2;
+  //this.x = (this.width - (Room.TILE_H * (this.room.cols - this.room.rows + 2))) / 2;
+  //this.y = (this.height - ((this.room.cols + this.room.rows) * Room.TILE_H / 2) + 42) / 2;
+  this.x = 976; //Temporal
+  this.y = 368; //Temporal
 };
 
 function Room(cols, rows, doorX, doorY, heightmap, game) {
@@ -291,7 +293,6 @@ Room.prototype.onMouseClick = function(x, y) {
     var tileY = Math.floor((xplusy - xminusy) / 2);
 
     if (this.isValidTile(tileX, tileY)) {
-      console.log("Request moving to x:" + tileX + " y:" + tileY);
       this.game.communication.requestMovement(tileX, tileY);
     }
   }

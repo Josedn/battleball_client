@@ -19,7 +19,7 @@ DrawableSprite.PRIORITY_CHAT = 12;
 
 Chat.INITIAL_OFFSET_Y = -123;
 Chat.SPEED = 92; //Pixels per seconds
-Chat.ROLL_PERIOD = 5; //Seconds
+Chat.ROLL_PERIOD = 5000; // ms
 
 function Chat(player, text, x, y) {
   this.player = player;
@@ -31,17 +31,9 @@ function Chat(player, text, x, y) {
 
 Chat.prototype.move = function(delta) {
   delta = delta / 1000;
-  if (this.targetY > this.y)
+  if (this.targetY < this.y)
   {
-    this.y += 92 * delta;
-    if (this.y > this.targetY)
-    {
-      this.y = this.targetY;
-    }
-  }
-  else if (this.targetY < this.y)
-  {
-    this.y -= 92 * delta;
+    this.y -= Chat.SPEED * delta;
     if (this.y < this.targetY)
     {
       this.y = this.targetY;
@@ -52,8 +44,8 @@ Chat.prototype.move = function(delta) {
 function DrawableSprite(sprite, selectableSprite, screenX, screenY, priority) {
   this.sprite = sprite;
   this.selectableSprite = selectableSprite;
-  this.screenX = this.screenX;
-  this.screenY = this.screenY;
+  this.screenX = screenX;
+  this.screenY = screenY;
   this.priority = priority;
 }
 
@@ -69,26 +61,26 @@ DrawableSprite.prototype.getComparableItem = function() {
   return this.screenY;
 };
 
-function IsometricDrawableSprite(sprite, selectableSprite, mapX, mapY, offsetX, offsetY, priority) {
+function IsometricDrawableSprite(sprite, selectableSprite, mapX, mapY, mapZ, offsetX, offsetY, priority) {
   DrawableSprite.call(this, sprite, selectableSprite, 0, 0, priority);
   this.mapX = mapX;
   this.mapY = mapY;
+  this.mapZ = mapZ;
   this.offsetX = offsetX;
   this.offsetY = offsetY;
 }
-DrawableSprite.prototype.getScreenX = function() {
+
+IsometricDrawableSprite.prototype.getScreenX = function() {
   return (this.mapX - this.mapY) * (Room.TILE_W / 2) + this.offsetX;
 };
 
-DrawableSprite.prototype.getScreenY = function() {
-  return (this.mapX + this.mapY) * (Room.TILE_H / 2) + this.offsetY;
+IsometricDrawableSprite.prototype.getScreenY = function() {
+  return (this.mapX + this.mapY) * (Room.TILE_H / 2) + this.offsetY - (this.mapZ * Room.TILE_H);
 };
 
-DrawableSprite.prototype.getComparableItem = function() {
+IsometricDrawableSprite.prototype.getComparableItem = function() {
   return (this.mapX + this.mapY) * (Room.TILE_H / 2);
 };
-IsometricDrawableSprite.prototype = Object.create(DrawableSprite.prototype);
-IsometricDrawableSprite.prototype.constructor = IsometricDrawableSprite;
 
 function Camera(room) {
   this.room = room;
@@ -118,6 +110,7 @@ function Room(cols, rows, doorX, doorY, heightmap, game) {
   this.sprites = new Sprites();
   this.camera = new Camera(this);
   this.chatUpdateCounter = 0;
+  this.chatTimerCounter = 0;
   this.furni = new Furni(1, 4, 4, 0);
   this.furni.prepare();
   this.drawQueue = new PriorityQueue({
@@ -223,27 +216,34 @@ Room.prototype.loadSprites = function() {
 Room.prototype.addChat = function(userId, text) {
   var player = this.getPlayer(userId);
   if (player != null) {
-    var mapPositionX = Math.round((player.x - player.y) * Room.TILE_H);
-    this.rollChats();
-    this.chats.push(new Chat(player, text, mapPositionX + 22, Chat.INITIAL_OFFSET_Y));
+    var mapPositionX = Math.round((player.x - player.y) * Room.TILE_H) + 22;
+    if (this.chatTimerCounter < Chat.ROLL_PERIOD) {
+      this.rollChats();
+    }
+    this.chats.push(new Chat(player, text, mapPositionX, Chat.INITIAL_OFFSET_Y));
+    this.chatTimerCounter = 0;
+    this.chatUpdateCounter = 0;
+  }
+};
+
+Room.prototype.addWave = function(userId, text) {
+  var player = this.getPlayer(userId);
+  if (player != null) {
+    player.wave(1);
   }
 };
 
 Room.prototype.drawWall = function() {
   for (var i = 0; i < this.rows; i++) {
     if (i + 1 == this.doorY) {
-      this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage('room_door_extended'), null, 1, i, -40, -119, DrawableSprite.PRIORITY_WALL));
-      //this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('room_door_extended'), null, (1 - i) * (Room.TILE_W / 2) + offsetX - 40, (i + 1) * (Room.TILE_H / 2) + offsetY - 119, DrawableSprite.PRIORITY_WALL));
+      this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage('room_door_extended'), null, 1, i, 0, -40, -119, DrawableSprite.PRIORITY_WALL));
     }
     else if (i != this.doorY && i + 1) {
-      this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage('room_wall_l'), null, 1, i, -8, -119, DrawableSprite.PRIORITY_WALL));
-      //this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('room_wall_l'), null, (1 - i) * (Room.TILE_W / 2) + offsetX - 8, (i + 1) * (Room.TILE_H / 2) + offsetY - 119, DrawableSprite.PRIORITY_WALL));
+      this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage('room_wall_l'), null, 1, i, 0, -8, -119, DrawableSprite.PRIORITY_WALL));
     }
   }
-
   for (var i = 1; i < this.cols; i++) {
-    this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage('room_wall_r'), null, i, 1, 64, -135, DrawableSprite.PRIORITY_WALL));
-    //this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('room_wall_r'), null, (i - 1) * (Room.TILE_W / 2) + offsetX + 64, (i + 1) * (Room.TILE_H / 2) + offsetY - 135, DrawableSprite.PRIORITY_WALL));
+    this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage('room_wall_r'), null, i, 1, 0, 64, -135, DrawableSprite.PRIORITY_WALL));
   }
 };
 
@@ -255,8 +255,7 @@ Room.prototype.drawFloor = function() {
       // Draw the represented image number, at the desired X & Y coordinates followed by the graphic width and height.
       if (tile > 0) {
         var prio = ((this.doorX == i && this.doorY == j) ? DrawableSprite.PRIORITY_DOOR_FLOOR : DrawableSprite.PRIORITY_FLOOR);
-        this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage('room_tile'), null, i, j, 0, ((tile - 1) * Room.TILE_H), prio));
-        //this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('room_tile'), null, (i - j) * (Room.TILE_W / 2) + offsetX, (i + j) * (Room.TILE_H / 2) + offsetY - ((tile - 1) * Room.TILE_H), DrawableSprite.PRIORITY_DOOR_FLOOR));
+        this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage('room_tile'), null, i, j, tile - 1, 0, 0, prio));
       }
     }
   }
@@ -274,8 +273,7 @@ Room.prototype.drawSelectedTile = function() {
 
   if (this.isValidTile(tileX, tileY)) {
     var prio = ((this.doorX == tileX && this.doorY == tileY) ? DrawableSprite.PRIORITY_DOOR_FLOOR_SELECT : DrawableSprite.PRIORITY_FLOOR_SELECT);
-    this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage('selected_tile'), null, tileX, tileY, 0, -3, prio));
-    //this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('selected_tile'), null, (tileX - tileY) * (Room.TILE_W / 2) + offsetX, (tileX + tileY) * (Room.TILE_H / 2) + offsetY - 3, prio));
+    this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage('selected_tile'), null, tileX, tileY, this.heightmap[tileX][tileY] - 1, 0, -3, prio));
   }
 };
 
@@ -296,18 +294,15 @@ Room.prototype.drawPlayer = function(player) {
     shadowPrio = DrawableSprite.PRIORITY_DOOR_FLOOR_PLAYER_SHADOW;
   }
 
-  this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage('shadow_tile'), null, player.x, player.y, 0, -((this.heightmap[Math.floor(player.x)][Math.floor(player.y)] - 1) * Room.TILE_H), shadowPrio));
-  //this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('shadow_tile'), null, mapPositionX, mapPositionY - ((this.heightmap[Math.floor(player.x)][Math.floor(player.y)] - 1) * Room.TILE_H), shadowPrio));
+  this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage('shadow_tile'), null, player.x, player.y, this.heightmap[Math.floor(player.x)][Math.floor(player.y)] - 1, 0, 0, shadowPrio));
   if (player.ready) {
     var offsetX = (player.rot == 6 || player.rot == 5 || player.rot == 4) ? 3 : 0;
-    this.drawQueue.queue(new IsometricDrawableSprite(player.currentSprite(), player.currentSilhouette(), player.x, player.y, offsetX, -85 - (player.z * Room.TILE_H), prio));
-    //this.drawQueue.queue(new DrawableSprite(player.currentSprite(), player.currentSilhouette(), mapPositionX, mapPositionY - 85 - (player.z * Room.TILE_H), prio));
+    this.drawQueue.queue(new IsometricDrawableSprite(player.currentSprite(), player.currentSilhouette(), player.x, player.y, player.z, offsetX, -85, prio));
   } else {
-    this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage('ghost' + player.rot), null, player.x, player.y, 17, -58 - (player.z * Room.TILE_H), prio));
-    //this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('ghost' + player.rot), null, mapPositionX + 17, mapPositionY - 58 - (player.z * Room.TILE_H), prio));
+    this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage('ghost' + player.rot), null, player.x, player.y, player.z, 17, -58, prio));
   }
   if (player.shouldShowSign()) {
-    //this.drawSign(player.name, mapPositionX + 22, mapPositionY - 107);
+    this.drawSign(player);
   }
 };
 
@@ -315,12 +310,8 @@ Room.prototype.drawFurni = function() {
   var offsetX = this.camera.x;
   var offsetY = this.camera.y;
 
-  var mapPositionX = (this.furni.x - this.furni.y) * Room.TILE_H + offsetX;
-  var mapPositionY = (this.furni.x + this.furni.y) * Room.TILE_H / 2 + offsetY;
-
   if (this.furni.ready) {
-    this.drawQueue.queue(new IsometricDrawableSprite(this.furni.currentSprite(), null, this.furni.x, this.furni.y, 4, -38 - (this.furni.z * Room.TILE_H), DrawableSprite.PRIORITY_PLAYER));
-    //this.drawQueue.queue(new DrawableSprite(this.furni.currentSprite(), null, mapPositionX + 4, mapPositionY - 38 - (this.furni.z * Room.TILE_H), DrawableSprite.PRIORITY_PLAYER));
+    this.drawQueue.queue(new IsometricDrawableSprite(this.furni.currentSprite(), null, this.furni.x, this.furni.y, this.furni.z, 4, -38, DrawableSprite.PRIORITY_PLAYER));
   }
 };
 
@@ -361,15 +352,15 @@ Room.prototype.drawChat = function(chat) {
     tempCtx.drawImage(chat.player.headSprite(), 1, -3);
   }
 
-  this.drawQueue.queue(new DrawableSprite(tempCanvas, null, centeredX + this.camera.x, chat.y + this.camera.y, DrawableSprite.PRIORITY_CHAT));
+  this.drawQueue.queue(new DrawableSprite(tempCanvas, null, centeredX, chat.y, DrawableSprite.PRIORITY_CHAT));
   var arrowPositionX = (chat.player.x - chat.player.y) * Room.TILE_H + 27;
   var lefterBound = centeredX + 4;
   var righterBound = lefterBound + currentWidth - 8;
   arrowPositionX = Math.round(Math.max(lefterBound, Math.min(righterBound, arrowPositionX)));
-  this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('chat_arrow'), null, arrowPositionX + this.camera.x, chat.y + this.camera.y + 23, DrawableSprite.PRIORITY_CHAT));
+  this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('chat_arrow'), null, arrowPositionX, chat.y + 23, DrawableSprite.PRIORITY_CHAT));
 };
 
-Room.prototype.drawSign = function(text, x, y) {
+Room.prototype.drawSign = function(player) {
   var tempCanvas = document.createElement('canvas');
   var tempCtx = tempCanvas.getContext('2d');
 
@@ -377,10 +368,8 @@ Room.prototype.drawSign = function(text, x, y) {
   tempCtx.textBaseline = "top";
   tempCtx.fillStyle = "white";
 
-  var textWidth = Math.round(tempCtx.measureText(text).width) - 13;
+  var textWidth = Math.round(tempCtx.measureText(player.name).width) - 13;
   var currentWidth = 0;
-
-  var centeredX = x - Math.floor((Math.max(textWidth, 0) + 40) / 2);
 
   tempCtx.drawImage(this.sprites.getImage('sign_left'), currentWidth, 0);
   currentWidth += 20;
@@ -398,9 +387,11 @@ Room.prototype.drawSign = function(text, x, y) {
 
   tempCtx.drawImage(this.sprites.getImage('sign_right'), currentWidth, 0);
 
-  tempCtx.fillText(text, 20, 6);
+  tempCtx.fillText(player.name, 20, 6);
 
-  this.drawQueue.queue(new DrawableSprite(tempCanvas, null, centeredX, y, DrawableSprite.PRIORITY_SIGN));
+  var centeredX = Math.floor((Math.max(textWidth, 0) + 40) / 2);
+
+  this.drawQueue.queue(new IsometricDrawableSprite(tempCanvas, null, player.x, player.y, 0, 22 - centeredX, -107, DrawableSprite.PRIORITY_SIGN));
 };
 
 Room.prototype.tickSelectedUserSign = function() {
@@ -419,7 +410,8 @@ Room.prototype.rollChats = function() {
 
 Room.prototype.tickChats = function(delta) {
   this.chatUpdateCounter += delta;
-  if (this.chatUpdateCounter > Chat.ROLL_PERIOD * 1000) {
+  this.chatTimerCounter += delta;
+  if (this.chatUpdateCounter > Chat.ROLL_PERIOD) {
     this.rollChats();
     this.chatUpdateCounter = 0;
   }

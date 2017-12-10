@@ -50,8 +50,13 @@ Sprites.prototype.loadSimpleAvatar = function (key, look, direction) {
   return this.loadImage(key, totalUrl);
 };
 
-Sprites.prototype.loadWalkingAvatar = function (key, look, direction, walkFrame) {
-  var totalUrl = Sprites.EXTERNAL_IMAGER_URL + look + '&direction=' + direction + '&head_direction=' + direction + '&action=wlk&frame=' + (walkFrame);
+Sprites.prototype.loadWavingAvatar = function (key, look, direction, frame) {
+  var totalUrl = Sprites.EXTERNAL_IMAGER_URL + look + '&direction=' + direction + '&head_direction=' + direction + '&action=wav&frame=' + (frame);
+  return this.loadImage(key, totalUrl);
+};
+
+Sprites.prototype.loadWalkingAvatar = function (key, look, direction, frame) {
+  var totalUrl = Sprites.EXTERNAL_IMAGER_URL + look + '&direction=' + direction + '&head_direction=' + direction + '&action=wlk&frame=' + (frame);
   return this.loadImage(key, totalUrl);
 };
 
@@ -77,6 +82,16 @@ Sprites.prototype.loadAllWalkingAvatar = function (key, look) {
   }
   return Promise.all(p);
 }
+
+Sprites.prototype.loadAllWavingAvatar = function(key, look) {
+  var p = [];
+  for (var i = 0; i <= 7; i++) {
+    for (var j = 0; j <= 1; j++) {
+      p.push(this.loadWavingAvatar(key + "_" + i + "_" + j, look, i, j));
+    }
+  }
+  return Promise.all(p);
+};
 
 Sprites.prototype.generateSilhouette  = function(img, r, g, b) {
   var element = document.createElement('canvas');

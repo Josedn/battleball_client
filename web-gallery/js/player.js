@@ -6,6 +6,9 @@ function Player(id, x, y, z, rot, name, look)
   this.ready = false;
   this.walkFrame = 0;
   this.walkFrameCounter = 0;
+  this.waveFrame = 0;
+  this.waveFrameCounter = 0;
+  this.waveCounter = 0;
   this.showSignCounter = 0;
   this.updateParams(x, y, z, rot, name, look);
   this.sprites = new Sprites();
@@ -35,6 +38,7 @@ Player.prototype.loadSprites = function() {
   return [
     this.sprites.loadAllSimpleAvatar("simple", this.look),
     this.sprites.loadAllWalkingAvatar("walking", this.look),
+    this.sprites.loadAllWavingAvatar("waving", this.look),
     this.sprites.loadHeadAvatar("head", this.look)
   ];
 };
@@ -43,9 +47,15 @@ Player.prototype.isWalking = function() {
   return (this.x != this.targetX || this.y != this.targetY);
 };
 
+Player.prototype.isWaving = function() {
+  return this.waveCounter > 0;
+};
+
 Player.prototype.currentSprite = function() {
   if (this.isWalking()) {
     return this.sprites.getImage('walking_' + this.rot + "_" + this.walkFrame);
+  } else if (this.isWaving()) {
+    return this.sprites.getImage('waving_' + this.rot + "_" + this.waveFrame);
   }
   return this.sprites.getImage('simple_' + this.rot);
 };
@@ -57,6 +67,8 @@ Player.prototype.headSprite = function() {
 Player.prototype.currentSilhouette = function() {
   if (this.isWalking()) {
     return this.sprites.getSilhouette('walking_' + this.rot + "_" + this.walkFrame);
+  } else if (this.isWaving()) {
+    return this.sprites.getSilhouette('waving_' + this.rot + "_" + this.waveFrame);
   }
   return this.sprites.getSilhouette('simple_' + this.rot);
 };
@@ -66,7 +78,14 @@ Player.prototype.nextWalkFrame = function() {
   if (this.walkFrame >= 4) {
     this.walkFrame = 0;
   }
-}
+};
+
+Player.prototype.nextWaveFrame = function() {
+  this.waveFrame++;
+  if (this.waveFrame >= 2) {
+    this.waveFrame = 0;
+  }
+};
 
 Player.prototype.tick = function(delta) {
   if (this.isWalking()) {
@@ -80,14 +99,26 @@ Player.prototype.tick = function(delta) {
   if (this.showSignCounter > 0) {
     this.showSignCounter -= delta;
   }
-}
+  if (this.waveCounter > 0) {
+    this.waveFrameCounter += delta;
+    if (this.waveFrameCounter >= 100) {
+      this.nextWaveFrame();
+      this.waveFrameCounter = 0;
+    }
+    this.waveCounter -= delta;
+  }
+};
 
 Player.prototype.showSign = function(seconds) {
   this.showSignCounter = seconds * 1000;
-}
+};
 
 Player.prototype.shouldShowSign = function() {
   return this.showSignCounter > 0;
+};
+
+Player.prototype.wave = function(seconds) {
+  this.waveCounter = seconds * 1000;
 };
 
 Player.prototype.setMovement = function(x, y, rot) {

@@ -3,6 +3,7 @@ Communication.OUTGOING_REQUEST_MAP = 2;
 Communication.OUTGOING_REQUEST_MOVEMENT = 7;
 Communication.OUTGOING_REQUEST_CHAT = 9;
 Communication.OUTGOING_REQUEST_LOOK_AT = 12;
+Communication.OUTGOING_REQUEST_WAVE = 13;
 
 Communication.INCOMING_LOGIN_OK = 3;
 Communication.INCOMING_MAP_DATA = 4;
@@ -10,6 +11,7 @@ Communication.INCOMING_PLAYERS_DATA = 6;
 Communication.INCOMING_PLAYER_MOVEMENT = 8;
 Communication.INCOMING_CHAT = 10;
 Communication.INCOMING_PLAYER_REMOVE = 11;
+Communication.INCOMING_PLAYER_WAVE = 14;
 
 function Communication(game) {
   this.game = game;
@@ -47,6 +49,11 @@ Communication.prototype.requestLookAt = function(userId) {
   this.game.connection.sendMessage(message);
 };
 
+Communication.prototype.requestWave = function() {
+  var message = new ClientMessage(Communication.OUTGOING_REQUEST_WAVE);
+  this.game.connection.sendMessage(message);
+};
+
 Communication.prototype.handleMessage = function(data) {
   var request = new ServerMessage(data);
   switch (request.id)
@@ -68,6 +75,9 @@ Communication.prototype.handleMessage = function(data) {
       break;
     case Communication.INCOMING_CHAT:
       this.handleChat(request);
+      break;
+    case Communication.INCOMING_PLAYER_WAVE:
+      this.handleWave(request);
       break;
   }
 };
@@ -135,5 +145,12 @@ Communication.prototype.handleChat = function(request) {
   var text = request.popString();
   if (this.game.currentRoom != null) {
     this.game.currentRoom.addChat(userId, text);
+  }
+};
+
+Communication.prototype.handleWave = function(request) {
+  var userId = request.popInt();
+  if (this.game.currentRoom != null) {
+    this.game.currentRoom.addWave(userId);
   }
 };

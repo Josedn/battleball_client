@@ -446,12 +446,16 @@ Room.prototype.draw = function() {
   }
 };
 
-Room.prototype.tick = function(delta) {
+Room.prototype.tickPlayers = function(delta) {
   Object.keys(this.players).forEach(key => {
     if (this.players[key] != null) {
       this.players[key].tick(delta);
     }
   });
+};
+
+Room.prototype.tick = function(delta) {
+  this.tickPlayers(delta);
   this.tickChats(delta);
   this.tickSelectedUserSign();
 };

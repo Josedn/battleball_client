@@ -210,9 +210,9 @@ canvas
 input {
   outline: none;
 }
-@media screen and (max-width:950px) {
+/*@media screen and (max-width:950px) {*/
   #lower_bar .form_container
   {
     bottom: 55px;
   }
-}
+/*}*/

@@ -19,6 +19,10 @@ function onLogin() {
   Game.queueLogin(username, look);
 }
 
+function onWave() {
+  Game.requestWave();
+}
+
 function onChatSubmit() {
   var chat_text = document.getElementById("input_chat").value;
   document.getElementById("input_chat").value = "";
@@ -94,6 +98,12 @@ Game.queueLogin = function(username, look) {
 Game.requestChat = function(chat) {
   if (this.currentRoom != null && this.currentRoom.ready) {
     this.communication.requestChat(chat);
+  }
+};
+
+Game.requestWave = function() {
+  if (this.currentRoom != null && this.currentRoom.ready) {
+    this.communication.requestWave();
   }
 };
 

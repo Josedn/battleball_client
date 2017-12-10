@@ -24,11 +24,44 @@
     <h2>Battleball.io</h2>
   </header>
 
-  <section id="chat_container">
-    <form onsubmit="onChatSubmit(); return false;" autocomplete="off">
-      <input type="text" placeholder="Say something" id="input_chat">
-      <input type="submit" value="Say">
-    </form>
+  <section id="lower_bar">
+    <ul class="lower_container left">
+      <li>
+        <a href="#"><img src="./web-gallery/images/big_h.png"></a>
+      </li>
+      <li>
+        <a href="#"><img src="./web-gallery/images/rooms.png"></a>
+      </li>
+      <li>
+        <a href="#"><img src="./web-gallery/images/separator.png"></a>
+      </li>
+    </ul>
+
+    <section class="form_container">
+      <section class="lower_item">
+        <form onsubmit="onChatSubmit(); return false;" autocomplete="off">
+          <input type="text" placeholder="Click here to chat..." id="input_chat">
+          <input type="submit" value="Say">
+        </form>
+      </section>
+    </section>
+
+    <section class="lower_container right">
+      <ul class="lower_container left">
+        <li>
+          <a href="#"><img src="./web-gallery/images/separator.png"></a>
+        </li>
+        <li>
+          <section class="lower_item">Logout</section>
+        </li>
+        <li>
+          <a href="#"><img src="./web-gallery/images/separator.png"></a>
+        </li>
+        <li>
+          <section id="status" class="lower_item">-</section>
+        </li>
+      </ul>
+    </section>
   </section>
 
   <section id="main_wrapper">
@@ -74,7 +107,6 @@
         <input type="submit" value="Join">
       </form>
       <br>
-      <div style="font-size: 0.8em; " id="status"></div>
     </section>
     <section class="invisible_box">
       battleball.io

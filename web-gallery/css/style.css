@@ -45,6 +45,92 @@ canvas
   height: 100%;
   background-color: #000000;
 }
+#lower_bar
+{
+  user-select: none;
+  position: absolute;
+  bottom: 0px;
+  width: 100%;
+  background-color: #1c1c1a;
+  background-image: url('../images/lower_bg.png');
+  border: 1px solid #41403d;
+  box-sizing: border-box;
+}
+#lower_bar .lower_container
+{
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  padding-left: 20px;
+  overflow: hidden;
+}
+#lower_bar .left {
+  float: left;
+}
+#lower_bar .right {
+  float: right;
+  padding-right: 20px;
+}
+#lower_bar .form_container
+{
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  width: 100%;
+}
+#lower_bar li
+{
+  float: left;
+}
+#lower_bar li a, #lower_bar .lower_item
+{
+  font-size: 0.8em;
+  padding-left: 10px;
+  height: 50px;
+  display: flex;
+  justify-content: center; /* align horizontal */
+  align-items: center; /* align vertical */
+  box-sizing: border-box;
+}
+#lower_bar input[type="text"]
+{
+  font-weight: 500;
+  font-family: inherit;
+  box-sizing: border-box;
+  height: 36px;
+  padding: 0 8px 0 8px;
+  width: 394px;
+  border: 2px solid #000;
+  border-radius: 5px;
+}
+#lower_bar ::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+  color: #787878;
+}
+#lower_bar ::-moz-placeholder { /* Firefox 19+ */
+  color: #787878;
+}
+#lower_bar :-ms-input-placeholder { /* IE 10+ */
+  color: #787878;
+}
+#lower_bar :-moz-placeholder { /* Firefox 18- */
+  color: #787878;
+}
+#lower_bar input[type="submit"]
+{
+  font-family: inherit;
+  box-sizing: border-box;
+  background-color: #5b5b5b;
+  height: 35px;
+  padding: 0 8px 0 8px;
+  border: 1px solid #2d6c48;
+  border-radius: 5px;
+
+  width: 80px;
+	color: #ffffff;
+	background-color: #27ae60;
+}
+
 #main_wrapper
 {
   position: absolute;
@@ -73,13 +159,12 @@ canvas
 }
 #chat_container
 {
-  display: none;
   position: absolute;
   bottom: 40px;
   width: 100%;
   text-align: center;
 }
-input[type="text"]
+.box input[type="text"]
 {
   color: #ffffff;
   font-family: inherit;
@@ -91,7 +176,7 @@ input[type="text"]
 	border: 1px solid #efefef;
 	border-radius: 5px;
 }
-input[type="submit"]
+.box input[type="submit"]
 {
   font-family: inherit;
   box-sizing: border-box;
@@ -105,7 +190,18 @@ input[type="submit"]
 	color: #ffffff;
 	background-color: #27ae60;
 }
-.offline
-{
-
+.box ::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+  color: #aaaaaa;
+}
+.box ::-moz-placeholder { /* Firefox 19+ */
+  color: #aaaaaa;
+}
+.box :-ms-input-placeholder { /* IE 10+ */
+  color: #aaaaaa;
+}
+.box :-moz-placeholder { /* Firefox 18- */
+  color: #aaaaaa;
+}
+input {
+  outline: none;
 }

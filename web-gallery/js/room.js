@@ -165,13 +165,13 @@ Room.prototype.prepare = function() {
     var p = this.loadSprites();
 
     Promise.all(p).then(function (loaded) {
-      console.log("Sprites loaded (Room)");
+      updateStatus("Sprites loaded (Room)");
       this.ready = true;
       resolve();
     }.bind(this),
 
     function (error) {
-      console.log("Error loading sprites: " + error);
+      updateStatus("Error loading sprites: " + error);
       reject("Error loading sprites: " + error);
     }.bind(this));
 
@@ -229,7 +229,7 @@ Room.prototype.addChat = function(userId, text) {
 Room.prototype.addWave = function(userId, text) {
   var player = this.getPlayer(userId);
   if (player != null) {
-    player.wave(1);
+    player.wave(3);
   }
 };
 
@@ -311,7 +311,7 @@ Room.prototype.drawFurni = function() {
   var offsetY = this.camera.y;
 
   if (this.furni.ready) {
-    this.drawQueue.queue(new IsometricDrawableSprite(this.furni.currentSprite(), null, this.furni.x, this.furni.y, this.furni.z, 4, -38, DrawableSprite.PRIORITY_PLAYER));
+    this.drawQueue.queue(new IsometricDrawableSprite(this.furni.currentSprite(), null, this.furni.x, this.furni.y, this.furni.z, 4, -41, DrawableSprite.PRIORITY_PLAYER));
   }
 };
 

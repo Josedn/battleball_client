@@ -1,7 +1,6 @@
 function Connection(messageHandler) {
   this.connected = false;
   var wsImpl = window.WebSocket || window.MozWebSocket;
-  console.log("Connecting to server...");
   // create a new websocket and connect
   this.ws = new wsImpl('ws://127.0.0.1:8181/');
 
@@ -30,7 +29,7 @@ Connection.prototype.sendMessage = function(message) {
   if (this.isConnected()) {
     this.ws.send(message.body);
   } else {
-    console.log("Can't send, socket is no connected");
+    updateStatus("Can't send, socket is no connected");
   }
 };
 

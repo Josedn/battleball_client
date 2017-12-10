@@ -3,6 +3,7 @@ var Game = {};
 function updateStatus(status) {
   var stat_div = document.getElementById("status");
   stat_div.innerHTML = status;
+  console.log(status);
 }
 
 function onLogin() {
@@ -27,17 +28,11 @@ function onChatSubmit() {
 function showBox() {
   var main_wrapper = document.getElementById("main_wrapper");
   main_wrapper.style.display = 'block';
-
-  var chat_container = document.getElementById("chat_container");
-  chat_container.style.display = 'none';
 }
 
 function closeBox() {
   var main_wrapper = document.getElementById("main_wrapper");
   main_wrapper.style.display = 'none';
-
-  var chat_container = document.getElementById("chat_container");
-  chat_container.style.display = 'block';
 }
 
 Game.run = function(canvas) {
@@ -109,7 +104,7 @@ Game.doLogin = function(username, look) {
 };
 
 Game.onLoggedIn = function() {
-  console.log("Logged in!");
+  updateStatus("Logged in!");
   closeBox();
   this.communication.requestMap();
 };
@@ -117,20 +112,20 @@ Game.onLoggedIn = function() {
 Game.setMap = function(cols, rows, doorX, doorY, heightmap) {
   this.currentRoom = new Room(cols, rows, doorX, doorY, heightmap, this);
   this.currentRoom.prepare().then(function () {
-    console.log("Room loaded");
+    updateStatus("Room loaded");
   }).catch(function (err) {
-    console.log("Fail: " + err);
+    updateStatus("Fail: " + err);
   });
 }.bind(Game);
 
 Game.handleConnectionError = function() {
-  console.log("Connection fail");
+  updateStatus("Connection fail");
   updateStatus("Can't connect to server :'(");
   showBox();
 };
 
 Game.handleOpenConnection = function() {
-  console.log("Connection is open");
+  updateStatus("Connection is open");
   updateStatus("Connected to server!");
   this.communication = new Communication(this);
   if (this.queuedLogin) {
@@ -146,7 +141,7 @@ Game.handleMessage = function(data) {
 Game.handleClosedConnection = function() {
   this.currentRoom = null;
   this.communication = null;
-  console.log("Connection is closed");
+  updateStatus("Connection is closed");
   updateStatus("Lost connection!");
   showBox();
 };
@@ -190,6 +185,7 @@ window.onload = function () {
       var x = evt.clientX - rect.left;
       var y = evt.clientY - rect.top;
       Game.onMouseClick(x, y);
+      document.getElementById("input_chat").focus();
     }, false);
 
     canvas.addEventListener('mousedown', function(evt) {

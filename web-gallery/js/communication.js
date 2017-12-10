@@ -87,7 +87,7 @@ Communication.prototype.handleLoggedIn = function(request) {
 };
 
 Communication.prototype.handleMap = function(request) {
-  console.log("Received map");
+  updateStatus("Received map");
   var cols = request.popInt();
   var rows = request.popInt();
   var doorX = request.popInt();
@@ -106,7 +106,7 @@ Communication.prototype.handleMap = function(request) {
 
 Communication.prototype.handlePlayers = function(request) {
   var count = request.popInt();
-  console.log("Received (" + count + ") players");
+  updateStatus("Received (" + count + ") players");
 
   for (var i = 0; i < count; i++) {
     var id = request.popInt();

@@ -19,13 +19,13 @@ Furni.prototype.prepare = function() {
     var p = this.loadSprites();
 
     Promise.all(p).then(function (loaded) {
-      console.log("Sprites loaded (furniId:" + this.id + ")");
+      updateStatus("Sprites loaded (furniId:" + this.id + ")");
       this.ready = true;
       resolve();
     }.bind(this),
 
     function (error) {
-      console.log("Error loading sprites: " + error);
+      updateStatus("Error loading sprites: " + error);
       reject("Error loading sprites: " + error);
     }.bind(this));
 

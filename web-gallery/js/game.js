@@ -13,7 +13,7 @@ function onLogin() {
   var look;
   for (var i = 0; i < looks.length; i++) {
     if (looks[i].checked) {
-        look = looks[i].value;
+      look = looks[i].value;
     }
   }
   Game.queueLogin(username, look);
@@ -152,6 +152,18 @@ Game.onMouseMove = function(x, y, isDrag) {
   }
 }.bind(Game);
 
+Game.onTouchStart = function(x, y) {
+  if (this.currentRoom != null && this.currentRoom.ready) {
+    this.currentRoom.onTouchStart(x, y);
+  }
+}.bind(Game);
+
+Game.onTouchMove = function(x, y) {
+  if (this.currentRoom != null && this.currentRoom.ready) {
+    this.currentRoom.onTouchMove(x, y);
+  }
+}.bind(Game);
+
 Game.onMouseClick = function(x, y) {
   if (this.currentRoom != null && this.currentRoom.ready) {
     this.currentRoom.onMouseClick(x, y);
@@ -174,29 +186,48 @@ window.onload = function () {
   Game.run(canvas);
 
   var isDrag = false;
-    canvas.addEventListener('mousemove', function(evt) {
-      var rect = canvas.getBoundingClientRect();
-      var x = evt.clientX - rect.left;
-      var y = evt.clientY - rect.top;
-      Game.onMouseMove(x, y, isDrag);
-    }, false);
-    canvas.addEventListener('click', function(evt) {
-      var rect = canvas.getBoundingClientRect();
-      var x = evt.clientX - rect.left;
-      var y = evt.clientY - rect.top;
-      Game.onMouseClick(x, y);
+  canvas.addEventListener('mousemove', function(evt) {
+    var rect = canvas.getBoundingClientRect();
+    var x = evt.clientX - rect.left;
+    var y = evt.clientY - rect.top;
+    Game.onMouseMove(x, y, isDrag);
+  }, false);
+  canvas.addEventListener('click', function(evt) {
+    var rect = canvas.getBoundingClientRect();
+    var x = evt.clientX - rect.left;
+    var y = evt.clientY - rect.top;
+    Game.onMouseClick(x, y);
+  }, false);
+
+  window.addEventListener('keydown', function(evt) {
+    if (Game.currentRoom != null) {
       document.getElementById("input_chat").focus();
-    }, false);
+    }
+  });
 
-    canvas.addEventListener('mousedown', function(evt) {
-      isDrag = true;
-    }, false);
+  window.addEventListener('touchstart', function(evt) {
+    var rect = canvas.getBoundingClientRect();
+    var x = evt.touches[0].clientX - rect.left;
+    var y = evt.touches[0].clientY - rect.top;
+    Game.onTouchStart(x, y, true);
+  });
 
-    canvas.addEventListener('mouseup', function(evt) {
-      isDrag = false;
-    }, false);
+  window.addEventListener('touchmove', function(evt) {
+    var rect = canvas.getBoundingClientRect();
+    var x = evt.touches[0].clientX - rect.left;
+    var y = evt.touches[0].clientY - rect.top;
+    Game.onTouchMove(x, y, true);
+  });
 
-    window.addEventListener('resize', function(evt) {
-      Game.onResize();
-    }, false);
+  canvas.addEventListener('mousedown', function(evt) {
+    isDrag = true;
+  }, false);
+
+  canvas.addEventListener('mouseup', function(evt) {
+    isDrag = false;
+  }, false);
+
+  window.addEventListener('resize', function(evt) {
+    Game.onResize();
+  }, false);
 };

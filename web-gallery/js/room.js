@@ -492,12 +492,20 @@ Room.prototype.onMouseClick = function(x, y) {
 Room.prototype.onMouseMove = function(x, y, isDrag) {
   if (isDrag) //Move camera
   {
-    var diffX = this.selectedScreenX - x;
-    var diffY = this.selectedScreenY - y;
+    var diffX = Math.round(this.selectedScreenX - x);
+    var diffY = Math.round(this.selectedScreenY - y);
     this.camera.x -= diffX;
     this.camera.y -= diffY;
   }
 
-  this.selectedScreenX = x;
-  this.selectedScreenY = y;
+  this.selectedScreenX = Math.round(x);
+  this.selectedScreenY = Math.round(y);
+};
+
+Room.prototype.onTouchStart = function(x, y) {
+  this.onMouseMove(x, y, false);
+};
+
+Room.prototype.onTouchMove = function(x, y) {
+  this.onMouseMove(x, y, true);
 };

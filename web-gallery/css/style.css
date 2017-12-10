@@ -1,3 +1,7 @@
+html
+{
+  touch-action: none;
+}
 body
 {
   margin: 0 auto;
@@ -77,6 +81,7 @@ canvas
   margin: 0;
   padding: 0;
   position: absolute;
+  bottom: 0px;
   width: 100%;
 }
 #lower_bar li
@@ -204,4 +209,10 @@ canvas
 }
 input {
   outline: none;
+}
+@media screen and (max-width:950px) {
+  #lower_bar .form_container
+  {
+    bottom: 55px;
+  }
 }

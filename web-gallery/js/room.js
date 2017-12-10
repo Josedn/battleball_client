@@ -17,26 +17,25 @@ DrawableSprite.PRIORITY_PLAYER = 10;
 DrawableSprite.PRIORITY_SIGN = 11;
 DrawableSprite.PRIORITY_CHAT = 12;
 
-Chat.INITIAL_OFFSET_Y = -123;
 Chat.SPEED = 92; //Pixels per seconds
 Chat.ROLL_PERIOD = 5000; // ms
 
-function Chat(player, text, x, y) {
+function Chat(player, text, x) {
   this.player = player;
   this.text = text;
   this.x = x;
-  this.y = y;
-  this.targetY = y;
+  this.deltaY = 0;
+  this.targetY = 0;
 }
 
 Chat.prototype.move = function(delta) {
   delta = delta / 1000;
-  if (this.targetY < this.y)
+  if (this.targetY < this.deltaY)
   {
-    this.y -= Chat.SPEED * delta;
-    if (this.y < this.targetY)
+    this.deltaY -= Chat.SPEED * delta;
+    if (this.deltaY < this.targetY)
     {
-      this.y = this.targetY;
+      this.deltaY = this.targetY;
     }
   }
 }
@@ -220,7 +219,7 @@ Room.prototype.addChat = function(userId, text) {
     if (this.chatTimerCounter < Chat.ROLL_PERIOD) {
       this.rollChats();
     }
-    this.chats.push(new Chat(player, text, mapPositionX, Chat.INITIAL_OFFSET_Y));
+    this.chats.push(new Chat(player, text, mapPositionX));
     this.chatTimerCounter = 0;
     this.chatUpdateCounter = 0;
   }
@@ -352,12 +351,14 @@ Room.prototype.drawChat = function(chat) {
     tempCtx.drawImage(chat.player.headSprite(), 1, -3);
   }
 
-  this.drawQueue.queue(new DrawableSprite(tempCanvas, null, centeredX, chat.y, DrawableSprite.PRIORITY_CHAT));
+  var screenY = Math.round(chat.deltaY - (this.camera.height / 8));
+
+  this.drawQueue.queue(new DrawableSprite(tempCanvas, null, centeredX, screenY, DrawableSprite.PRIORITY_CHAT));
   var arrowPositionX = (chat.player.x - chat.player.y) * Room.TILE_H + 27;
   var lefterBound = centeredX + 4;
   var righterBound = lefterBound + currentWidth - 8;
   arrowPositionX = Math.round(Math.max(lefterBound, Math.min(righterBound, arrowPositionX)));
-  this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('chat_arrow'), null, arrowPositionX, chat.y + 23, DrawableSprite.PRIORITY_CHAT));
+  this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('chat_arrow'), null, arrowPositionX, screenY + 23, DrawableSprite.PRIORITY_CHAT));
 };
 
 Room.prototype.drawSign = function(player) {
@@ -403,7 +404,7 @@ Room.prototype.tickSelectedUserSign = function() {
 
 Room.prototype.rollChats = function() {
   this.chats.forEach(chat => {
-    chat.targetY = chat.y - 23;
+    chat.targetY = chat.deltaY - 23;
   });
   this.chatUpdateCounter = 0;
 };
@@ -486,6 +487,21 @@ Room.prototype.onMouseClick = function(x, y) {
     if (this.isValidTile(tileX, tileY)) {
       this.game.communication.requestMovement(tileX, tileY);
     }
+  }
+};
+
+Room.prototype.onMouseDoubleClick = function(x, y) {
+  var offsetX = this.camera.x;
+  var offsetY = this.camera.y;
+
+  var xminusy = (x - 32 - offsetX) / Room.TILE_H;
+  var xplusy =  (y - offsetY) * 2 / Room.TILE_H;
+
+  var tileX = Math.floor((xminusy + xplusy) / 2);
+  var tileY = Math.floor((xplusy - xminusy) / 2);
+
+  if (!this.isValidTile(tileX, tileY)) {
+    this.camera.reset();
   }
 };
 

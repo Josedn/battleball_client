@@ -180,6 +180,12 @@ Game.onMouseClick = function(x, y) {
   }
 }.bind(Game);
 
+Game.onMouseDoubleClick = function(x, y) {
+  if (this.currentRoom != null && this.currentRoom.ready) {
+    this.currentRoom.onMouseDoubleClick(x, y);
+  }
+}.bind(Game);
+
 Game.onResize = function() {
   this.canvas.width = window.innerWidth;
   this.canvas.height = window.innerHeight;
@@ -207,6 +213,13 @@ window.onload = function () {
     var x = evt.clientX - rect.left;
     var y = evt.clientY - rect.top;
     Game.onMouseClick(x, y);
+  }, false);
+
+  canvas.addEventListener('dblclick', function(evt) {
+    var rect = canvas.getBoundingClientRect();
+    var x = evt.clientX - rect.left;
+    var y = evt.clientY - rect.top;
+    Game.onMouseDoubleClick(x, y);
   }, false);
 
   window.addEventListener('keydown', function(evt) {

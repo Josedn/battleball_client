@@ -1,4 +1,5 @@
 Sprites.LOCAL_RESOURCES_URL = "./web-gallery/assets/";
+Sprites.EXTERNAL_FURNITURE_URL = "./hof_furni/";
 Sprites.EXTERNAL_IMAGER_URL = "./avatarimage.php?figure=";
 
 Sprites.rgb2int = function(r, g, b) {
@@ -43,6 +44,11 @@ Sprites.prototype.getImage = function (key) {
 
 Sprites.prototype.getSilhouette = function (key) {
     return (key in this.silhouettes) ? this.silhouettes[key] : null;
+};
+
+Sprites.prototype.loadFurniAsset = function(asset, key) {
+  var totalUrl = Sprites.EXTERNAL_FURNITURE_URL + asset + "/" + key + ".png";
+  return this.loadImage(key, totalUrl);
 };
 
 Sprites.prototype.loadSimpleAvatar = function (key, look, direction) {

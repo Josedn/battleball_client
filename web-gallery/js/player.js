@@ -29,7 +29,7 @@ Player.prototype.prepare = function() {
     function (error) {
       updateStatus("Error loading sprites: " + error);
       reject("Error loading sprites: " + error);
-    }.bind(this));
+    }.bind(this))
 
   }.bind(this));
 };

@@ -14,6 +14,7 @@ DrawableSprite.PRIORITY_FLOOR = 7;
 DrawableSprite.PRIORITY_PLAYER_SHADOW = 8;
 DrawableSprite.PRIORITY_FLOOR_SELECT = 9;
 DrawableSprite.PRIORITY_PLAYER = 10;
+DrawableSprite.PRIORITY_FURNI = 10;
 DrawableSprite.PRIORITY_SIGN = 11;
 DrawableSprite.PRIORITY_CHAT = 12;
 
@@ -106,12 +107,11 @@ function Room(cols, rows, doorX, doorY, heightmap, game) {
   this.players = {};
   this.chats = [];
   this.selectableSprites = {};
+  this.furniture = {};
   this.sprites = new Sprites();
   this.camera = new Camera(this);
   this.chatUpdateCounter = 0;
   this.chatTimerCounter = 0;
-  this.furni = new Furni(1, 4, 4, 0);
-  this.furni.prepare();
   this.drawQueue = new PriorityQueue({
     comparator: function(a, b) {
       if (a.priority != b.priority) {
@@ -122,12 +122,39 @@ function Room(cols, rows, doorX, doorY, heightmap, game) {
   });
 }
 
+Room.prototype.prepareFurnidata = function() {
+  return new Promise(function (resolve, reject) {
+    var r = new XMLHttpRequest();
+    r.open("GET", Furni.FURNIDATA_URL, true);
+    r.onreadystatechange = function () {
+      if (r.readyState != 4 || r.status != 200) {
+        if (r.status == 404) {
+          reject("Error downloading furnidata");
+        }
+        return;
+      }
+      this.furnidata = JSON.parse(r.responseText).furnidata;
+      updateStatus("Furnidata ok");
+      resolve();
+    }.bind(this);
+    r.send();
+  }.bind(this));
+};
+
 Room.prototype.getPlayer = function(id) {
   return (id in this.players) ? this.players[id] : null;
 };
 
 Room.prototype.getPlayerFromSelectId = function(id) {
-  return (id in this.selectableSprites) ? this.selectableSprites[id] : null;
+  return (id in this.selectableSprites) && this.selectableSprites[id] instanceof Player ? this.selectableSprites[id] : null;
+};
+
+Room.prototype.getFurni = function(id) {
+  return (id in this.furniture) ? this.furniture[id] : null;
+};
+
+Room.prototype.getFurniFromSelectId = function(id) {
+  return (id in this.selectableSprites) && this.selectableSprites[id] instanceof Furni ? this.selectableSprites[id] : null;
 };
 
 Room.prototype.setPlayer = function(id, x, y, z, rot, name, look) {
@@ -139,6 +166,32 @@ Room.prototype.setPlayer = function(id, x, y, z, rot, name, look) {
     this.selectableSprites[p.sprites.colorId] = p;
   } else {
     player.updateParams(x, y, z, rot, name, look);
+  }
+};
+
+Room.prototype.setFurni = function(id, x, y, z, baseId) {
+  updateStatus("Setting furni");
+  if (this.furnidata[baseId] != null) {
+    updateStatus("base " + baseId + " exists");
+    var furni = this.getFurni(id);
+    if (furni == null) {
+      updateStatus("creating new furni");
+      var f = new Furni(id, x, y, z, this.furnidata[baseId]);
+      f.prepare();
+      this.furniture[id] = f;
+      this.selectableSprites[f.sprites.colorId] = f;
+    } else {
+      furni.updateParams(x, y, z, this.furnidata[baseId]);
+    }
+  }
+};
+
+Room.prototype.removeFurni = function(id) {
+  if (id in this.furniture) {
+    if (this.furniture[id].sprites.colorId in this.selectableSprites) {
+      delete(this.selectableSprites[this.furniture[id].sprites.colorId]);
+    }
+    delete(this.furniture[id]);
   }
 };
 
@@ -162,6 +215,7 @@ Room.prototype.prepare = function() {
   return new Promise(function (resolve, reject) {
 
     var p = this.loadSprites();
+    p.push(this.prepareFurnidata());
 
     Promise.all(p).then(function (loaded) {
       updateStatus("Sprites loaded (Room)");
@@ -170,9 +224,8 @@ Room.prototype.prepare = function() {
     }.bind(this),
 
     function (error) {
-      updateStatus("Error loading sprites: " + error);
-      reject("Error loading sprites: " + error);
-    }.bind(this));
+      reject("Error loading room: " + error);
+    }.bind(this))
 
   }.bind(this));
 };
@@ -305,13 +358,12 @@ Room.prototype.drawPlayer = function(player) {
   }
 };
 
-Room.prototype.drawFurni = function() {
-  var offsetX = this.camera.x;
-  var offsetY = this.camera.y;
-
-  if (this.furni.ready) {
-    this.drawQueue.queue(new IsometricDrawableSprite(this.furni.currentSprite(), null, this.furni.x, this.furni.y, this.furni.z, 4, -41, DrawableSprite.PRIORITY_PLAYER));
-  }
+Room.prototype.drawFurniture = function() {
+  Object.keys(this.furniture).forEach(key => {
+    if (this.furniture[key] != null && this.furniture[key].ready) {
+      this.drawQueue.queue(new IsometricDrawableSprite(this.furniture[key].currentSprite(), null, this.furniture[key].x, this.furniture[key].y, this.furniture[key].z, Furni.DRAWING_OFFSET, Furni.DRAWING_OFFSET, DrawableSprite.PRIORITY_FURNI));
+    }
+  });
 };
 
 Room.prototype.drawChat = function(chat) {
@@ -431,9 +483,9 @@ Room.prototype.draw = function() {
   this.drawWall();
   this.drawFloor();
   this.drawPlayers();
-  this.drawFurni();
   this.drawSelectedTile();
   this.drawChats();
+  this.drawFurniture();
 
   var ctx = this.game.ctx;
   var auxCtx = this.game.auxCtx;
@@ -454,8 +506,17 @@ Room.prototype.tickPlayers = function(delta) {
   });
 };
 
+Room.prototype.tickFurniture = function(delta) {
+  Object.keys(this.furniture).forEach(key => {
+    if (this.furniture[key] != null && this.furniture[key].ready) {
+      this.furniture[key].tick(delta);
+    }
+  });
+};
+
 Room.prototype.tick = function(delta) {
   this.tickPlayers(delta);
+  this.tickFurniture(delta);
   this.tickChats(delta);
   this.tickSelectedUserSign();
 };

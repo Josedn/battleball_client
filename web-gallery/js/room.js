@@ -378,6 +378,9 @@ Room.prototype.drawChat = function(chat) {
   tempCtx.font = Room.FONT;
   var textWidth = Math.round(tempCtx.measureText(text).width);
 
+  tempCanvas.width = usernameWidth + textWidth + 31 + 10;
+  tempCtx.textBaseline = "top";
+
   var currentWidth = 0;
   var centeredX = chat.x - Math.floor((usernameWidth + textWidth + 41) / 2);
 
@@ -389,6 +392,7 @@ Room.prototype.drawChat = function(chat) {
   }
 
   tempCtx.drawImage(this.sprites.getImage('chat_right'), currentWidth, 0);
+  currentWidth += 10;
 
   tempCtx.font = Room.FONT_BOLD;
   tempCtx.fillText(username + ": ", 31, 5);
@@ -405,7 +409,7 @@ Room.prototype.drawChat = function(chat) {
   this.drawQueue.queue(new DrawableSprite(tempCanvas, null, centeredX, screenY, DrawableSprite.PRIORITY_CHAT));
   var arrowPositionX = (chat.player.x - chat.player.y) * Room.TILE_H + 27;
   var lefterBound = centeredX + 4;
-  var righterBound = lefterBound + currentWidth - 8;
+  var righterBound = lefterBound + currentWidth - 18;
   arrowPositionX = Math.round(Math.max(lefterBound, Math.min(righterBound, arrowPositionX)));
   this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('chat_arrow'), null, arrowPositionX, screenY + 23, DrawableSprite.PRIORITY_CHAT));
 };

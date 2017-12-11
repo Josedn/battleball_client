@@ -3,11 +3,12 @@ Furni.INTERNAL_DRAWING_OFFSET_X = -132;
 Furni.INTERNAL_DRAWING_OFFSET_Y = -116;
 Furni.FURNIDATA_URL = "./furnidata.json";
 
-function Furni(id, x, y, z, base) {
+function Furni(id, x, y, z, rot, base) {
   this.id = id;
   this.x = x;
   this.y = y;
   this.z = z;
+  this.rot = rot;
   this.base = base;
   this.ready = false;
   this.sprites = new Sprites();
@@ -16,7 +17,6 @@ function Furni(id, x, y, z, base) {
 Furni.prototype.loadSprites = function() {
   var spritesToLoad = [];
   Object.keys(this.base.assets).forEach(key => {
-    console.log("loading " + key);
     spritesToLoad.push(this.sprites.loadFurniAsset(this.base.assetName, key));
   });
   return spritesToLoad;
@@ -28,7 +28,7 @@ Furni.prototype.prepare = function() {
     var p = this.loadSprites();
 
     Promise.all(p).then(function (loaded) {
-      updateStatus("Sprites loaded (furniId:" + this.id + ")");
+      updateStatus("Sprites loaded (" + this.base.assetName + " furniId:" + this.id + ")");
       this.ready = true;
       resolve();
     }.bind(this),

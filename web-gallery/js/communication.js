@@ -4,6 +4,7 @@ Communication.OUTGOING_REQUEST_MOVEMENT = 7;
 Communication.OUTGOING_REQUEST_CHAT = 9;
 Communication.OUTGOING_REQUEST_LOOK_AT = 12;
 Communication.OUTGOING_REQUEST_WAVE = 13;
+Communication.OUTGOING_REQUEST_ROOM_DATA = 15;
 
 Communication.INCOMING_LOGIN_OK = 3;
 Communication.INCOMING_MAP_DATA = 4;
@@ -12,6 +13,8 @@ Communication.INCOMING_PLAYER_MOVEMENT = 8;
 Communication.INCOMING_CHAT = 10;
 Communication.INCOMING_PLAYER_REMOVE = 11;
 Communication.INCOMING_PLAYER_WAVE = 14;
+Communication.INCOMING_FURNI_DATA = 16;
+Communication.INCOMING_FURNI_REMOVE = 17;
 
 function Communication(game) {
   this.game = game;
@@ -26,6 +29,10 @@ Communication.prototype.doLogin = function(username, look) {
 
 Communication.prototype.requestMap = function() {
   this.game.connection.sendMessage(new ClientMessage(Communication.OUTGOING_REQUEST_MAP));
+};
+
+Communication.prototype.requestRoomData = function() {
+  this.game.connection.sendMessage(new ClientMessage(Communication.OUTGOING_REQUEST_ROOM_DATA));
 };
 
 Communication.prototype.requestMovement = function(x, y) {
@@ -79,6 +86,12 @@ Communication.prototype.handleMessage = function(data) {
     case Communication.INCOMING_PLAYER_WAVE:
       this.handleWave(request);
       break;
+    case Communication.INCOMING_FURNI_DATA:
+      this.handleFurni(request);
+      break;
+    case Communication.INCOMING_FURNI_REMOVE:
+      this.handleRemoveFurni(request);
+      break;
   }
 };
 
@@ -123,6 +136,23 @@ Communication.prototype.handlePlayers = function(request) {
   }
 };
 
+Communication.prototype.handleFurni = function(request) {
+  var count = request.popInt();
+  updateStatus("Received (" + count + ") furniture");
+  for (var i = 0; i < count; i++) {
+    var id = request.popInt();
+    var x = request.popInt();
+    var y  = request.popInt();
+    var z  = parseFloat(request.popString());
+    var rot = request.popInt();
+    var baseId = request.popInt();
+
+    if (this.game.currentRoom != null) {
+      this.game.currentRoom.setFurni(id, x, y, z, rot, baseId);
+    }
+  }
+};
+
 Communication.prototype.handleMovement = function(request) {
   var userId = request.popInt();
   var x = request.popInt();
@@ -137,6 +167,13 @@ Communication.prototype.handleRemovePlayer = function(request) {
   var userId = request.popInt();
   if (this.game.currentRoom != null) {
     this.game.currentRoom.removePlayer(userId);
+  }
+};
+
+Communication.prototype.handleRemoveFurni = function(request) {
+  var furniId = request.popInt();
+  if (this.game.currentRoom != null) {
+    this.game.currentRoom.removeFurni(userId);
   }
 };
 

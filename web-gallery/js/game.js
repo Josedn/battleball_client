@@ -123,7 +123,8 @@ Game.setMap = function(cols, rows, doorX, doorY, heightmap) {
   this.currentRoom = new Room(cols, rows, doorX, doorY, heightmap, this);
   this.currentRoom.prepare().then(function () {
     updateStatus("Room loaded");
-  }).catch(function (err) {
+    this.communication.requestRoomData();
+  }.bind(Game)).catch(function (err) {
     updateStatus("Fail: " + err);
   });
 }.bind(Game);

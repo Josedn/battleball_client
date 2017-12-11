@@ -169,19 +169,16 @@ Room.prototype.setPlayer = function(id, x, y, z, rot, name, look) {
   }
 };
 
-Room.prototype.setFurni = function(id, x, y, z, baseId) {
-  updateStatus("Setting furni");
+Room.prototype.setFurni = function(id, x, y, z, rot, baseId) {
   if (this.furnidata[baseId] != null) {
-    updateStatus("base " + baseId + " exists");
     var furni = this.getFurni(id);
     if (furni == null) {
-      updateStatus("creating new furni");
-      var f = new Furni(id, x, y, z, this.furnidata[baseId]);
+      var f = new Furni(id, x, y, z, rot, this.furnidata[baseId]);
       f.prepare();
       this.furniture[id] = f;
       this.selectableSprites[f.sprites.colorId] = f;
     } else {
-      furni.updateParams(x, y, z, this.furnidata[baseId]);
+      furni.updateParams(x, y, z, rot, this.furnidata[baseId]);
     }
   }
 };

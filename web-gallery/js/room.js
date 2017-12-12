@@ -243,6 +243,7 @@ Room.prototype.loadSprites = function() {
     this.sprites.loadImage('room_wall_l', Sprites.LOCAL_RESOURCES_URL + 'room_wall_l.png'),
     this.sprites.loadImage('room_wall_r', Sprites.LOCAL_RESOURCES_URL + 'room_wall_r.png'),
     this.sprites.loadImage('room_door_extended', Sprites.LOCAL_RESOURCES_URL + 'room_door_extended.png'),
+    this.sprites.loadImage('furni_placeholder', Sprites.LOCAL_RESOURCES_URL + 'furni_placeholder.png'),
     this.sprites.loadImage('ghost0', Sprites.LOCAL_RESOURCES_URL + 'ghost0.png'),
     this.sprites.loadImage('ghost1', Sprites.LOCAL_RESOURCES_URL + 'ghost1.png'),
     this.sprites.loadImage('ghost2', Sprites.LOCAL_RESOURCES_URL + 'ghost2.png'),
@@ -357,8 +358,12 @@ Room.prototype.drawPlayer = function(player) {
 
 Room.prototype.drawFurniture = function() {
   Object.keys(this.furniture).forEach(key => {
-    if (this.furniture[key] != null && this.furniture[key].ready) {
-      this.drawQueue.queue(new IsometricDrawableSprite(this.furniture[key].currentSprite(), null, this.furniture[key].x, this.furniture[key].y, this.furniture[key].z, Furni.DRAWING_OFFSET, Furni.DRAWING_OFFSET, DrawableSprite.PRIORITY_FURNI));
+    if (this.furniture[key] != null) {
+      if (this.furniture[key].ready) {
+        this.drawQueue.queue(new IsometricDrawableSprite(this.furniture[key].currentSprite(), null, this.furniture[key].x, this.furniture[key].y, this.furniture[key].z, Furni.DRAWING_OFFSET, Furni.DRAWING_OFFSET, DrawableSprite.PRIORITY_FURNI));
+      } else {
+        this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage('furni_placeholder'), null, this.furniture[key].x, this.furniture[key].y, this.furniture[key].z, -2, -33, DrawableSprite.PRIORITY_FURNI));
+      }
     }
   });
 };

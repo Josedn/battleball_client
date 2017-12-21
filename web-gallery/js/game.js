@@ -60,19 +60,15 @@ Game.tryConnect = function() {
 }.bind(Game);
 
 Game.draw = function() {
-  this.ctx.fillStyle = 'rgba(0, 0, 0, 1)';
-  this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-  this.auxCtx.fillStyle = 'rgba(0, 0, 0, 1)';
-  this.auxCtx.fillRect(0, 0, this.auxCanvas.width, this.auxCanvas.height);
-
+  this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  this.auxCtx.clearRect(0, 0, this.auxCanvas.width, this.auxCanvas.height);
+  
   if (this.currentRoom != null && this.currentRoom.ready) {
     this.currentRoom.draw();
   }
 }.bind(Game);
 
 Game.tick = function(elapsed) {
-  window.requestAnimationFrame(this.tick);
   var delta = (elapsed - this._previousElapsed);
   //delta = Math.min(delta, 0.25); // maximum delta of 250 ms
   this._previousElapsed = elapsed;
@@ -81,6 +77,7 @@ Game.tick = function(elapsed) {
     this.currentRoom.tick(delta);
   }
   this.draw();
+  window.requestAnimationFrame(this.tick);
 }.bind(Game);
 
 Game.queueLogin = function(username, look) {

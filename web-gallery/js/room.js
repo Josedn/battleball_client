@@ -39,6 +39,12 @@ Chat.prototype.move = function(delta) {
       this.deltaY = this.targetY;
     }
   }
+};
+
+function ChatManager(room) {
+  this.room = room;
+  this.chats = [];
+
 }
 
 function DrawableSprite(sprite, selectableSprite, screenX, screenY, priority) {
@@ -105,7 +111,6 @@ function Room(cols, rows, doorX, doorY, heightmap, game) {
   this.selectedScreenX = 0;
   this.selectedScreenY = 0;
   this.players = {};
-  this.chats = [];
   this.selectableSprites = {};
   this.furniture = {};
   this.sprites = new Sprites();
@@ -497,10 +502,14 @@ Room.prototype.draw = function() {
   var auxCtx = this.game.auxCtx;
   while (this.drawQueue.length > 0) {
     var drawable = this.drawQueue.dequeue();
-    ctx.drawImage(drawable.sprite, drawable.getScreenX() + this.camera.x, drawable.getScreenY() + this.camera.y);
-    if (drawable.selectableSprite != null) {
-      auxCtx.drawImage(drawable.selectableSprite, drawable.getScreenX() + this.camera.x, drawable.getScreenY() + this.camera.y);
-    }
+    var screenX = drawable.getScreenX() + this.camera.x;
+    var screenY = drawable.getScreenY() + this.camera.y;
+    //if (screenX > 0 && screenY > 0 && screenX < this.camera.width - 100 && screenY < this.camera.height) {
+      ctx.drawImage(drawable.sprite, screenX, screenY);
+      if (drawable.selectableSprite != null) {
+        auxCtx.drawImage(drawable.selectableSprite, screenX, screenY);
+      }
+    //}
   }
 };
 

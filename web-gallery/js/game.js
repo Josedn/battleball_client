@@ -6,6 +6,11 @@ function updateStatus(status) {
   console.log(status);
 }
 
+function updateFps(fps) {
+  var stat_div = document.getElementById("fps_status");
+  stat_div.innerHTML = fps + " fps";
+}
+
 function onLogin() {
   var username = document.getElementById("input_username").value;
 
@@ -39,6 +44,12 @@ function closeBox() {
   main_wrapper.style.display = 'none';
 }
 
+Game.TILE_H = 32;
+Game.TILE_W = 64;
+
+Game.FONT = "400 10pt Ubuntu";
+Game.FONT_BOLD = "700 10pt Ubuntu";
+
 Game.run = function(canvas) {
   this.canvas = canvas;
   this.ctx = this.canvas.getContext('2d');
@@ -62,7 +73,7 @@ Game.tryConnect = function() {
 Game.draw = function() {
   this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
   this.auxCtx.clearRect(0, 0, this.auxCanvas.width, this.auxCanvas.height);
-  
+
   if (this.currentRoom != null && this.currentRoom.ready) {
     this.currentRoom.draw();
   }
@@ -76,6 +87,7 @@ Game.tick = function(elapsed) {
   if (this.currentRoom != null && this.currentRoom.ready) {
     this.currentRoom.tick(delta);
   }
+  updateFps(Math.round(1000 / delta));
   this.draw();
   window.requestAnimationFrame(this.tick);
 }.bind(Game);

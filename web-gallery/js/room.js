@@ -1,93 +1,3 @@
-Room.TILE_H = 32;
-Room.TILE_W = 64;
-
-Room.FONT = "400 10pt Ubuntu";
-Room.FONT_BOLD = "700 10pt Ubuntu";
-
-DrawableSprite.PRIORITY_DOOR_FLOOR = 1;
-DrawableSprite.PRIORITY_DOOR_FLOOR_SELECT = 2;
-DrawableSprite.PRIORITY_DOOR_FLOOR_PLAYER_SHADOW = 3;
-DrawableSprite.PRIORITY_DOOR_FLOOR_PLAYER = 4;
-DrawableSprite.PRIORITY_DOOR_WALL = 5;
-DrawableSprite.PRIORITY_WALL = 6;
-DrawableSprite.PRIORITY_FLOOR = 7;
-DrawableSprite.PRIORITY_PLAYER_SHADOW = 8;
-DrawableSprite.PRIORITY_FLOOR_SELECT = 9;
-DrawableSprite.PRIORITY_PLAYER = 10;
-DrawableSprite.PRIORITY_FURNI = 10;
-DrawableSprite.PRIORITY_SIGN = 11;
-DrawableSprite.PRIORITY_CHAT = 12;
-
-Chat.SPEED = 92; //Pixels per seconds
-Chat.ROLL_PERIOD = 5000; // ms
-
-function Chat(player, text, x) {
-  this.player = player;
-  this.text = text;
-  this.x = x;
-  this.deltaY = 0;
-  this.targetY = 0;
-}
-
-Chat.prototype.move = function(delta) {
-  delta = delta / 1000;
-  if (this.targetY < this.deltaY)
-  {
-    this.deltaY -= Chat.SPEED * delta;
-    if (this.deltaY < this.targetY)
-    {
-      this.deltaY = this.targetY;
-    }
-  }
-};
-
-function ChatManager(room) {
-  this.room = room;
-  this.chats = [];
-
-}
-
-function DrawableSprite(sprite, selectableSprite, screenX, screenY, priority) {
-  this.sprite = sprite;
-  this.selectableSprite = selectableSprite;
-  this.screenX = screenX;
-  this.screenY = screenY;
-  this.priority = priority;
-}
-
-DrawableSprite.prototype.getScreenX = function() {
-  return this.screenX;
-};
-
-DrawableSprite.prototype.getScreenY = function() {
-  return this.screenY;
-};
-
-DrawableSprite.prototype.getComparableItem = function() {
-  return this.screenY;
-};
-
-function IsometricDrawableSprite(sprite, selectableSprite, mapX, mapY, mapZ, offsetX, offsetY, priority) {
-  DrawableSprite.call(this, sprite, selectableSprite, 0, 0, priority);
-  this.mapX = mapX;
-  this.mapY = mapY;
-  this.mapZ = mapZ;
-  this.offsetX = offsetX;
-  this.offsetY = offsetY;
-}
-
-IsometricDrawableSprite.prototype.getScreenX = function() {
-  return (this.mapX - this.mapY) * (Room.TILE_W / 2) + this.offsetX;
-};
-
-IsometricDrawableSprite.prototype.getScreenY = function() {
-  return (this.mapX + this.mapY) * (Room.TILE_H / 2) + this.offsetY - (this.mapZ * Room.TILE_H);
-};
-
-IsometricDrawableSprite.prototype.getComparableItem = function() {
-  return (this.mapX + this.mapY) * (Room.TILE_H / 2);
-};
-
 function Camera(room) {
   this.room = room;
   this.reset();
@@ -96,8 +6,8 @@ function Camera(room) {
 Camera.prototype.reset = function() {
   this.width = this.room.game.canvas.width;
   this.height = this.room.game.canvas.height;
-  this.x = Math.round((this.width - (Room.TILE_H * (this.room.cols - this.room.rows + 3))) / 2);
-  this.y = Math.round((this.height - ((this.room.cols + this.room.rows) * Room.TILE_H / 2) + 114) / 2);
+  this.x = Math.round((this.width - (Game.TILE_H * (this.room.cols - this.room.rows + 3))) / 2);
+  this.y = Math.round((this.height - ((this.room.cols + this.room.rows) * Game.TILE_H / 2) + 114) / 2);
 };
 
 function Room(cols, rows, doorX, doorY, heightmap, game) {
@@ -115,8 +25,7 @@ function Room(cols, rows, doorX, doorY, heightmap, game) {
   this.furniture = {};
   this.sprites = new Sprites();
   this.camera = new Camera(this);
-  this.chatUpdateCounter = 0;
-  this.chatTimerCounter = 0;
+  this.chatManager = new ChatManager(this);
   this.drawQueue = new PriorityQueue({
     comparator: function(a, b) {
       if (a.priority != b.priority) {
@@ -218,6 +127,7 @@ Room.prototype.prepare = function() {
 
     var p = this.loadSprites();
     p.push(this.prepareFurnidata());
+    p.push(this.chatManager.loadSprites());
 
     Promise.all(p).then(function (loaded) {
       updateStatus("Sprites loaded (Room)");
@@ -261,23 +171,13 @@ Room.prototype.loadSprites = function() {
     this.sprites.loadImage('sign_right', Sprites.LOCAL_RESOURCES_URL + 'sign_right.png'),
     this.sprites.loadImage('sign_center', Sprites.LOCAL_RESOURCES_URL + 'sign_center.png'),
     this.sprites.loadImage('sign_bite', Sprites.LOCAL_RESOURCES_URL + 'sign_bite.png'),
-    this.sprites.loadImage('chat_left', Sprites.LOCAL_RESOURCES_URL + 'chat_left.png'),
-    this.sprites.loadImage('chat_right', Sprites.LOCAL_RESOURCES_URL + 'chat_right.png'),
-    this.sprites.loadImage('chat_arrow', Sprites.LOCAL_RESOURCES_URL + 'chat_arrow.png'),
-    this.sprites.loadImage('chat_bite', Sprites.LOCAL_RESOURCES_URL + 'chat_bite.png')
   ];
 };
 
 Room.prototype.addChat = function(userId, text) {
   var player = this.getPlayer(userId);
   if (player != null) {
-    var mapPositionX = Math.round((player.x - player.y) * Room.TILE_H) + 22;
-    if (this.chatTimerCounter < Chat.ROLL_PERIOD) {
-      this.rollChats();
-    }
-    this.chats.push(new Chat(player, text, mapPositionX));
-    this.chatTimerCounter = 0;
-    this.chatUpdateCounter = 0;
+    this.chatManager.addChat(player, text);
   }
 };
 
@@ -320,8 +220,8 @@ Room.prototype.drawSelectedTile = function() {
   var offsetX = this.camera.x;
   var offsetY = this.camera.y;
 
-  var xminusy = (this.selectedScreenX - 32 - offsetX) / Room.TILE_H;
-  var xplusy =  (this.selectedScreenY - offsetY) * 2 / Room.TILE_H;
+  var xminusy = (this.selectedScreenX - 32 - offsetX) / Game.TILE_H;
+  var xplusy =  (this.selectedScreenY - offsetY) * 2 / Game.TILE_H;
 
   var tileX = Math.floor((xminusy + xplusy) / 2);
   var tileY = Math.floor((xplusy - xminusy) / 2);
@@ -373,62 +273,11 @@ Room.prototype.drawFurniture = function() {
   });
 };
 
-Room.prototype.drawChat = function(chat) {
-  var tempCanvas = document.createElement('canvas');
-  var tempCtx = tempCanvas.getContext('2d');
-
-  tempCtx.font = Room.FONT_BOLD;
-  tempCtx.textBaseline = "top";
-  tempCtx.fillStyle = "black";
-
-  var username = chat.player.name;
-  var text = chat.text;
-
-  var usernameWidth = Math.round(tempCtx.measureText(username + ": ").width);
-  tempCtx.font = Room.FONT;
-  var textWidth = Math.round(tempCtx.measureText(text).width);
-
-  tempCanvas.width = usernameWidth + textWidth + 31 + 10;
-  tempCtx.textBaseline = "top";
-
-  var currentWidth = 0;
-  var centeredX = chat.x - Math.floor((usernameWidth + textWidth + 41) / 2);
-
-  tempCtx.drawImage(this.sprites.getImage('chat_left'), currentWidth, 0);
-  currentWidth += 31;
-
-  for (var i = 0; i < usernameWidth + textWidth; i++) {
-    tempCtx.drawImage(this.sprites.getImage('chat_bite'), currentWidth++, 0);
-  }
-
-  tempCtx.drawImage(this.sprites.getImage('chat_right'), currentWidth, 0);
-  currentWidth += 10;
-
-  tempCtx.font = Room.FONT_BOLD;
-  tempCtx.fillText(username + ": ", 31, 5);
-
-  tempCtx.font = Room.FONT;
-  tempCtx.fillText(text, 31 + usernameWidth, 5);
-
-  if (chat.player.headSprite() != null) {
-    tempCtx.drawImage(chat.player.headSprite(), 1, -3);
-  }
-
-  var screenY = Math.round(chat.deltaY - (this.camera.height / 8));
-
-  this.drawQueue.queue(new DrawableSprite(tempCanvas, null, centeredX, screenY, DrawableSprite.PRIORITY_CHAT));
-  var arrowPositionX = (chat.player.x - chat.player.y) * Room.TILE_H + 27;
-  var lefterBound = centeredX + 4;
-  var righterBound = lefterBound + currentWidth - 18;
-  arrowPositionX = Math.round(Math.max(lefterBound, Math.min(righterBound, arrowPositionX)));
-  this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('chat_arrow'), null, arrowPositionX, screenY + 23, DrawableSprite.PRIORITY_CHAT));
-};
-
 Room.prototype.drawSign = function(player) {
   var tempCanvas = document.createElement('canvas');
   var tempCtx = tempCanvas.getContext('2d');
 
-  tempCtx.font = Room.FONT;
+  tempCtx.font = Game.FONT;
   tempCtx.textBaseline = "top";
   tempCtx.fillStyle = "white";
 
@@ -465,37 +314,11 @@ Room.prototype.tickSelectedUserSign = function() {
   }
 };
 
-Room.prototype.rollChats = function() {
-  this.chats.forEach(chat => {
-    chat.targetY = chat.deltaY - 23;
-  });
-  this.chatUpdateCounter = 0;
-};
-
-Room.prototype.tickChats = function(delta) {
-  this.chatUpdateCounter += delta;
-  this.chatTimerCounter += delta;
-  if (this.chatUpdateCounter > Chat.ROLL_PERIOD) {
-    this.rollChats();
-    this.chatUpdateCounter = 0;
-  }
-  this.chats.forEach(chat => {
-    chat.move(delta);
-  });
-};
-
-Room.prototype.drawChats = function() {
-  this.chats.forEach(chat => {
-    this.drawChat(chat);
-  });
-};
-
 Room.prototype.draw = function() {
   this.drawWall();
   this.drawFloor();
   this.drawPlayers();
   this.drawSelectedTile();
-  this.drawChats();
   this.drawFurniture();
 
   var ctx = this.game.ctx;
@@ -505,12 +328,16 @@ Room.prototype.draw = function() {
     var screenX = drawable.getScreenX() + this.camera.x;
     var screenY = drawable.getScreenY() + this.camera.y;
     //if (screenX > 0 && screenY > 0 && screenX < this.camera.width - 100 && screenY < this.camera.height) {
-      ctx.drawImage(drawable.sprite, screenX, screenY);
-      if (drawable.selectableSprite != null) {
-        auxCtx.drawImage(drawable.selectableSprite, screenX, screenY);
-      }
+    ctx.drawImage(drawable.sprite, screenX, screenY);
+    if (drawable.selectableSprite != null) {
+      auxCtx.drawImage(drawable.selectableSprite, screenX, screenY);
+    }
     //}
   }
+  var chatSprites = this.chatManager.getDrawableSprites();
+  chatSprites.forEach(chatSprite => {
+    ctx.drawImage(chatSprite.sprite, chatSprite.getScreenX() + this.camera.x, chatSprite.getScreenY() + this.camera.y);
+  });
 };
 
 Room.prototype.tickPlayers = function(delta) {
@@ -532,8 +359,8 @@ Room.prototype.tickFurniture = function(delta) {
 Room.prototype.tick = function(delta) {
   this.tickPlayers(delta);
   this.tickFurniture(delta);
-  this.tickChats(delta);
   this.tickSelectedUserSign();
+  this.chatManager.tick(delta);
 };
 
 Room.prototype.onSelectPlayer = function(player) {
@@ -558,8 +385,8 @@ Room.prototype.onMouseClick = function(x, y) {
     var offsetX = this.camera.x;
     var offsetY = this.camera.y;
 
-    var xminusy = (x - 32 - offsetX) / Room.TILE_H;
-    var xplusy =  (y - offsetY) * 2 / Room.TILE_H;
+    var xminusy = (x - 32 - offsetX) / Game.TILE_H;
+    var xplusy =  (y - offsetY) * 2 / Game.TILE_H;
 
     var tileX = Math.floor((xminusy + xplusy) / 2);
     var tileY = Math.floor((xplusy - xminusy) / 2);
@@ -574,8 +401,8 @@ Room.prototype.onMouseDoubleClick = function(x, y) {
   var offsetX = this.camera.x;
   var offsetY = this.camera.y;
 
-  var xminusy = (x - 32 - offsetX) / Room.TILE_H;
-  var xplusy =  (y - offsetY) * 2 / Room.TILE_H;
+  var xminusy = (x - 32 - offsetX) / Game.TILE_H;
+  var xplusy =  (y - offsetY) * 2 / Game.TILE_H;
 
   var tileX = Math.floor((xminusy + xplusy) / 2);
   var tileY = Math.floor((xplusy - xminusy) / 2);

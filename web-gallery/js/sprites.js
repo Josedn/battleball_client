@@ -2,6 +2,20 @@ Sprites.LOCAL_RESOURCES_URL = "./web-gallery/assets/";
 Sprites.EXTERNAL_FURNITURE_URL = "./hof_furni/";
 Sprites.EXTERNAL_IMAGER_URL = "./avatarimage.php?figure=";
 
+DrawableSprite.PRIORITY_DOOR_FLOOR = 1;
+DrawableSprite.PRIORITY_DOOR_FLOOR_SELECT = 2;
+DrawableSprite.PRIORITY_DOOR_FLOOR_PLAYER_SHADOW = 3;
+DrawableSprite.PRIORITY_DOOR_FLOOR_PLAYER = 4;
+DrawableSprite.PRIORITY_DOOR_WALL = 5;
+DrawableSprite.PRIORITY_WALL = 6;
+DrawableSprite.PRIORITY_FLOOR = 7;
+DrawableSprite.PRIORITY_PLAYER_SHADOW = 8;
+DrawableSprite.PRIORITY_FLOOR_SELECT = 9;
+DrawableSprite.PRIORITY_PLAYER = 10;
+DrawableSprite.PRIORITY_FURNI = 10;
+DrawableSprite.PRIORITY_SIGN = 11;
+DrawableSprite.PRIORITY_CHAT = 12;
+
 Sprites.rgb2int = function(r, g, b) {
   return (r << 16) + (g << 8) + (b);
 };
@@ -99,7 +113,7 @@ Sprites.prototype.loadAllWavingAvatar = function(key, look) {
   return Promise.all(p);
 };
 
-Sprites.prototype.generateSilhouette  = function(img, r, g, b) {
+Sprites.prototype.generateSilhouette = function(img, r, g, b) {
   var element = document.createElement('canvas');
   var c = element.getContext("2d");
 
@@ -114,17 +128,58 @@ Sprites.prototype.generateSilhouette  = function(img, r, g, b) {
   for (var y = 0; y < height; y++) {
     var inpos = y * width * 4;
     for (var x = 0; x < width; x++) {
-      var pr = imageData.data[inpos++]
-      var pg = imageData.data[inpos++]
-      var pb = imageData.data[inpos++]
-      var pa = imageData.data[inpos++]
+      var pr = imageData.data[inpos++];
+      var pg = imageData.data[inpos++];
+      var pb = imageData.data[inpos++];
+      var pa = imageData.data[inpos++];
       if (pa != 0) {
-        imageData.data[inpos - 2] = b;   //B
-        imageData.data[inpos - 3] = g;   //G
+        imageData.data[inpos - 2] = b; //B
+        imageData.data[inpos - 3] = g; //G
         imageData.data[inpos - 4] = r; //R
       }
     }
   }
   c.putImageData(imageData, 0, 0);
   return element;
+};
+
+function DrawableSprite(sprite, selectableSprite, screenX, screenY, priority) {
+  this.sprite = sprite;
+  this.selectableSprite = selectableSprite;
+  this.screenX = screenX;
+  this.screenY = screenY;
+  this.priority = priority;
+}
+
+DrawableSprite.prototype.getScreenX = function() {
+  return this.screenX;
+};
+
+DrawableSprite.prototype.getScreenY = function() {
+  return this.screenY;
+};
+
+DrawableSprite.prototype.getComparableItem = function() {
+  return this.screenY;
+};
+
+function IsometricDrawableSprite(sprite, selectableSprite, mapX, mapY, mapZ, offsetX, offsetY, priority) {
+  DrawableSprite.call(this, sprite, selectableSprite, 0, 0, priority);
+  this.mapX = mapX;
+  this.mapY = mapY;
+  this.mapZ = mapZ;
+  this.offsetX = offsetX;
+  this.offsetY = offsetY;
+}
+
+IsometricDrawableSprite.prototype.getScreenX = function() {
+  return (this.mapX - this.mapY) * (Game.TILE_W / 2) + this.offsetX;
+};
+
+IsometricDrawableSprite.prototype.getScreenY = function() {
+  return (this.mapX + this.mapY) * (Game.TILE_H / 2) + this.offsetY - (this.mapZ * Game.TILE_H);
+};
+
+IsometricDrawableSprite.prototype.getComparableItem = function() {
+  return (this.mapX + this.mapY) * (Game.TILE_H / 2);
 };

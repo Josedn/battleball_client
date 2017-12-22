@@ -17,20 +17,16 @@ function Player(id, x, y, z, rot, name, look)
 
 Player.prototype.prepare = function() {
   return new Promise(function (resolve, reject) {
-
     var p = this.loadSprites();
-
     Promise.all(p).then(function (loaded) {
       updateStatus("Sprites loaded (" + this.name + ")");
       this.ready = true;
       resolve();
     }.bind(this),
-
     function (error) {
       updateStatus("Error loading sprites: " + error);
       reject("Error loading sprites: " + error);
     }.bind(this))
-
   }.bind(this));
 };
 
@@ -140,36 +136,28 @@ Player.prototype.updateParams = function(x, y, z, rot, name, look) {
 
 Player.prototype.move = function(delta) {
   delta = delta / 1000;
-  if (this.targetX > this.x)
-  {
+  if (this.targetX > this.x) {
     this.x += Player.SPEED * delta;
-    if (this.x > this.targetX)
-    {
+    if (this.x > this.targetX) {
       this.x = this.targetX;
     }
   }
-  else if (this.targetX < this.x)
-  {
+  else if (this.targetX < this.x) {
     this.x += -Player.SPEED * delta;
-    if (this.x < this.targetX)
-    {
+    if (this.x < this.targetX) {
       this.x = this.targetX;
     }
   }
 
-  if (this.targetY > this.y)
-  {
+  if (this.targetY > this.y) {
     this.y += Player.SPEED * delta;
-    if (this.y > this.targetY)
-    {
+    if (this.y > this.targetY) {
       this.y = this.targetY;
     }
   }
-  else if (this.targetY < this.y)
-  {
+  else if (this.targetY < this.y) {
     this.y -= Player.SPEED * delta;
-    if (this.y < this.targetY)
-    {
+    if (this.y < this.targetY) {
       this.y = this.targetY;
     }
   }

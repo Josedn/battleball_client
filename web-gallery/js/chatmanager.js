@@ -13,11 +13,9 @@ function Chat(manager, player, text, x) {
 
 Chat.prototype.move = function(delta) {
   delta = delta / 1000;
-  if (this.targetY < this.deltaY)
-  {
+  if (this.targetY < this.deltaY) {
     this.deltaY -= Chat.SPEED * delta;
-    if (this.deltaY < this.targetY)
-    {
+    if (this.deltaY < this.targetY) {
       this.deltaY = this.targetY;
     }
   }
@@ -78,7 +76,7 @@ function ChatManager(room) {
 ChatManager.prototype.addChat = function(player, text) {
   var mapPositionX = Math.round((player.x - player.y) * Game.TILE_H) + 22;
   if (this.needsRoll) {
-    this.rollChats();
+    this.rollChats(1);
   }
   this.chats.push(new Chat(this, player, text, mapPositionX));
   this.needsRoll = true;
@@ -93,9 +91,9 @@ ChatManager.prototype.loadSprites = function() {
   ];
 };
 
-ChatManager.prototype.rollChats = function() {
+ChatManager.prototype.rollChats = function(amount) {
   this.chats.forEach(chat => {
-    chat.targetY = chat.deltaY - 23;
+    chat.targetY -= (23 * amount);
   });
   this.chatRollerCounter = 0;
   this.needsRoll = false;
@@ -104,7 +102,7 @@ ChatManager.prototype.rollChats = function() {
 ChatManager.prototype.tick = function(delta) {
   this.chatRollerCounter += delta;
   if (this.chatRollerCounter > Chat.ROLL_PERIOD) {
-    this.rollChats();
+    this.rollChats(Math.round(this.chatRollerCounter / Chat.ROLL_PERIOD));
     this.chatRollerCounter = 0;
   }
   this.chats.forEach(chat => {

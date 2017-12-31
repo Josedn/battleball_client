@@ -325,8 +325,8 @@ Room.prototype.draw = function() {
   var auxCtx = this.game.auxCtx;
   while (this.drawQueue.length > 0) {
     var drawable = this.drawQueue.dequeue();
-    var screenX = drawable.getScreenX() + this.camera.x;
-    var screenY = drawable.getScreenY() + this.camera.y;
+    var screenX = Math.round(drawable.getScreenX() + this.camera.x);
+    var screenY = Math.round(drawable.getScreenY() + this.camera.y);
     //if (screenX > 0 && screenY > 0 && screenX < this.camera.width - 100 && screenY < this.camera.height) {
     ctx.drawImage(drawable.sprite, screenX, screenY);
     if (drawable.selectableSprite != null) {

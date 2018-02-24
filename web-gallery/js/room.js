@@ -47,7 +47,7 @@ Room.prototype.prepareFurnidata = function() {
         }
         return;
       }
-      this.furnidata = JSON.parse(r.responseText).furnidata;
+      this.furnidata = JSON.parse(r.responseText);
       updateStatus("Furnidata ok");
       resolve();
     }.bind(this);
@@ -137,7 +137,7 @@ Room.prototype.prepare = function() {
 
     function (error) {
       reject("Error loading room: " + error);
-    }.bind(this))
+    }.bind(this));
 
   }.bind(this));
 };

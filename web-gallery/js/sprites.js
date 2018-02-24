@@ -27,12 +27,12 @@ function Sprites() {
   this.colorG = this.random(0, 255);
   this.colorB = this.random(0, 255);
   this.colorId = Sprites.rgb2int(this.colorR, this.colorG, this.colorB);
-}
+};
 
 Sprites.prototype.random = function(min, max) {
   var num = Math.floor(Math.random()*(max-min)) + min;
   return num;
-}
+};
 
 Sprites.prototype.loadImage = function (key, src) {
     var img = new Image();

@@ -49,7 +49,7 @@
 
     <section class="form_container">
       <section class="lower_item">
-        <form onsubmit="onChatSubmit(); return false;" autocomplete="off">
+        <form id="chat_form" onsubmit="onChatSubmit(); return false;" autocomplete="off">
           <input type="text" placeholder="Click here to chat..." id="input_chat">
           <input type="submit" value="Say">
         </form>
@@ -85,7 +85,7 @@
       <img src="./web-gallery/images/Bb2_logo_193x87.gif">
       <br>
       <br>
-      <form onsubmit="onLogin(); return false;">
+      <form id="login_form" onsubmit="onLogin(); return false;">
         <br>
         <input type="text" placeholder="Username" id="input_username">
         <br>

@@ -319,7 +319,15 @@ AvatarImager.prototype.getPartColor = function(figure) {
   return parts;
 };
 
+AvatarImager.prototype.generateGhost = function(avatarImage, canvasCallback) {
+  return this.generateGeneric(avatarImage, canvasCallback, true);
+};
+
 AvatarImager.prototype.generate = function(avatarImage, canvasCallback) {
+  return this.generateGeneric(avatarImage, canvasCallback, false);
+};
+
+AvatarImager.prototype.generateGeneric = function(avatarImage, canvasCallback, isGhost) {
   if (!avatarImage.ok) {
     return null;
   }
@@ -327,9 +335,7 @@ AvatarImager.prototype.generate = function(avatarImage, canvasCallback) {
   let tempCtx = tempCanvas.getContext('2d');
   tempCanvas.width = avatarImage.rectWidth;
   tempCanvas.height = avatarImage.rectHeight;
-  //tempCtx.fillStyle = "#ffffff";
-  //tempCtx.fillRect(0, 0, avatarImage.rectWidth, avatarImage.rectHeight);
-
+  
   let activeParts = {};
   activeParts.rect = this.getActivePartSet(avatarImage.isHeadOnly ? "head" : "figure");
   activeParts.head = this.getActivePartSet("head");
@@ -379,6 +385,10 @@ AvatarImager.prototype.generate = function(avatarImage, canvasCallback) {
           }
 
           if (!activeParts.rect.includes(type)) {
+            continue;
+          }
+
+          if (isGhost && (activeParts.gesture.includes(type) || activeParts.eye.includes(type))) {
             continue;
           }
 
@@ -502,7 +512,7 @@ AvatarImager.prototype.generate = function(avatarImage, canvasCallback) {
 
             let img = chunk.resource;
             if (chunk.color != null) {
-              img = this.tintSprite(img, chunk.color);
+              img = this.tintSprite(img, chunk.color, (isGhost ? 170 : 255));
             }
             if (chunk.isFlip) {
               posX = -(posX + img.width - avatarImage.rectWidth + 1);
@@ -546,7 +556,7 @@ AvatarImager.prototype.flipSprite = function(img) {
   return element;
 };
 
-AvatarImager.prototype.tintSprite = function(img, color) {
+AvatarImager.prototype.tintSprite = function(img, color, alpha) {
   let element = document.createElement('canvas');
   let c = element.getContext("2d");
 
@@ -568,6 +578,7 @@ AvatarImager.prototype.tintSprite = function(img, color) {
       let pb = imageData.data[inpos++];
       let pa = imageData.data[inpos++];
       if (pa != 0) {
+        imageData.data[inpos - 1] = alpha; //A
         imageData.data[inpos - 2] = Math.round(rgb.b * imageData.data[inpos - 2] / 255); //B
         imageData.data[inpos - 3] = Math.round(rgb.g * imageData.data[inpos - 3] / 255); //G
         imageData.data[inpos - 4] = Math.round(rgb.r * imageData.data[inpos - 4] / 255); //R

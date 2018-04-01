@@ -61,9 +61,17 @@ Game.run = function(canvas) {
   this._previousElapsed = 0;
   this.queuedLogin = false;
   this.onResize();
-  this.tryConnect();
-  window.requestAnimationFrame(this.tick);
+
+  this.prepareAvatarImager().then(() => {
+    this.tryConnect();
+    window.requestAnimationFrame(this.tick);
+  });
 }.bind(Game);
+
+Game.prepareAvatarImager = function() {
+  this.avatarImager = new AvatarImager();
+  return this.avatarImager.initialize();
+};
 
 Game.tryConnect = function() {
   this.connection = new Connection(this);

@@ -55,11 +55,6 @@ Room.prototype.prepareFurnidata = function() {
   }.bind(this));
 };
 
-Room.prototype.prepareAvatarImager = function() {
-  this.avatarImager = new AvatarImager();
-  return this.avatarImager.initialize();
-};
-
 Room.prototype.getPlayer = function(id) {
   return (id in this.players) ? this.players[id] : null;
 };
@@ -80,7 +75,7 @@ Room.prototype.setPlayer = function(id, x, y, z, rot, name, look) {
   var player = this.getPlayer(id);
   if (player == null) {
     var p = new Player(id, x, y, z, rot, name, look);
-    p.prepare(this.avatarImager);
+    p.prepare(this.game.avatarImager);
     this.players[id] = p;
     this.selectableSprites[p.sprites.colorId] = p;
   } else {
@@ -132,7 +127,6 @@ Room.prototype.prepare = function() {
 
     var p = this.loadSprites();
     p.push(this.prepareFurnidata());
-    p.push(this.prepareAvatarImager());
     p.push(this.chatManager.loadSprites());
 
     Promise.all(p).then(function (loaded) {
@@ -165,18 +159,11 @@ Room.prototype.loadSprites = function() {
     this.sprites.loadImage('room_wall_r', Sprites.LOCAL_RESOURCES_URL + 'room_wall_r.png'),
     this.sprites.loadImage('room_door_extended', Sprites.LOCAL_RESOURCES_URL + 'room_door_extended.png'),
     this.sprites.loadImage('furni_placeholder', Sprites.LOCAL_RESOURCES_URL + 'furni_placeholder.png'),
-    this.sprites.loadImage('ghost0', Sprites.LOCAL_RESOURCES_URL + 'ghost0.png'),
-    this.sprites.loadImage('ghost1', Sprites.LOCAL_RESOURCES_URL + 'ghost1.png'),
-    this.sprites.loadImage('ghost2', Sprites.LOCAL_RESOURCES_URL + 'ghost2.png'),
-    this.sprites.loadImage('ghost3', Sprites.LOCAL_RESOURCES_URL + 'ghost3.png'),
-    this.sprites.loadImage('ghost4', Sprites.LOCAL_RESOURCES_URL + 'ghost4.png'),
-    this.sprites.loadImage('ghost5', Sprites.LOCAL_RESOURCES_URL + 'ghost5.png'),
-    this.sprites.loadImage('ghost6', Sprites.LOCAL_RESOURCES_URL + 'ghost6.png'),
-    this.sprites.loadImage('ghost7', Sprites.LOCAL_RESOURCES_URL + 'ghost7.png'),
     this.sprites.loadImage('sign_left', Sprites.LOCAL_RESOURCES_URL + 'sign_left.png'),
     this.sprites.loadImage('sign_right', Sprites.LOCAL_RESOURCES_URL + 'sign_right.png'),
     this.sprites.loadImage('sign_center', Sprites.LOCAL_RESOURCES_URL + 'sign_center.png'),
     this.sprites.loadImage('sign_bite', Sprites.LOCAL_RESOURCES_URL + 'sign_bite.png'),
+    this.sprites.loadAllGenericGhost(this.game.avatarImager),
   ];
 };
 
@@ -257,11 +244,11 @@ Room.prototype.drawPlayer = function(player) {
   }
 
   this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage('shadow_tile'), null, player.x, player.y, this.heightmap[Math.floor(player.x)][Math.floor(player.y)] - 1, 0, 0, shadowPrio));
+  var offsetX = (player.rot == 6 || player.rot == 5 || player.rot == 4) ? 3 : 0;
   if (player.ready) {
-    var offsetX = (player.rot == 6 || player.rot == 5 || player.rot == 4) ? 3 : 0;
     this.drawQueue.queue(new IsometricDrawableSprite(player.currentSprite(), player.currentSilhouette(), player.x, player.y, player.z, offsetX, -85, prio));
   } else {
-    this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage('ghost' + player.rot), null, player.x, player.y, player.z, 17, -58, prio));
+    this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage(player.getCurrentAvatarSpriteKey()), null, player.x, player.y, player.z, offsetX, -85, prio));
   }
   if (player.shouldShowSign()) {
     this.drawSign(player);

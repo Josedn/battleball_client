@@ -15,9 +15,9 @@ function Player(id, x, y, z, rot, name, look)
   this.showSign(10);
 }
 
-Player.prototype.prepare = function() {
+Player.prototype.prepare = function(avatarImager) {
   return new Promise(function (resolve, reject) {
-    var p = this.loadSprites();
+    var p = this.loadSprites(avatarImager);
     Promise.all(p).then(function (loaded) {
       updateStatus("Sprites loaded (" + this.name + ")");
       this.ready = true;
@@ -30,12 +30,9 @@ Player.prototype.prepare = function() {
   }.bind(this));
 };
 
-Player.prototype.loadSprites = function() {
+Player.prototype.loadSprites = function(avatarImager) {
   return [
-    this.sprites.loadAllSimpleAvatar("simple", this.look),
-    this.sprites.loadAllWalkingAvatar("walking", this.look),
-    this.sprites.loadAllWavingAvatar("waving", this.look),
-    this.sprites.loadHeadAvatar("head", this.look)
+    this.sprites.loadAllGenericAvatar(this.look, avatarImager),
   ];
 };
 
@@ -48,12 +45,22 @@ Player.prototype.isWaving = function() {
 };
 
 Player.prototype.currentSprite = function() {
+  let action = ["std"];
+  let gesture = "std";
+  let frame = 0;
   if (this.isWalking()) {
-    return this.sprites.getImage('walking_' + this.rot + "_" + this.walkFrame);
-  } else if (this.isWaving()) {
-    return this.sprites.getImage('waving_' + this.rot + "_" + this.waveFrame);
+    action = ["wlk"];
+    frame = this.walkFrame;
   }
-  return this.sprites.getImage('simple_' + this.rot);
+  if (this.isWaving()) {
+    action = ["wav"];
+    frame = this.waveFrame;
+  }
+  if (this.isWalking() && this.isWaving()) {
+    action = ["wlk", "wav"];
+    frame = this.walkFrame;
+  }
+  return this.sprites.getImage(this.sprites.getAvatarSpriteKey(this.rot, this.rot, action, gesture, frame));
 };
 
 Player.prototype.headSprite = function() {
@@ -61,12 +68,13 @@ Player.prototype.headSprite = function() {
 };
 
 Player.prototype.currentSilhouette = function() {
-  if (this.isWalking()) {
+  /*if (this.isWalking()) {
     return this.sprites.getSilhouette('walking_' + this.rot + "_" + this.walkFrame);
   } else if (this.isWaving()) {
     return this.sprites.getSilhouette('waving_' + this.rot + "_" + this.waveFrame);
   }
-  return this.sprites.getSilhouette('simple_' + this.rot);
+  return this.sprites.getSilhouette('simple_' + this.rot);*/
+  return this.sprites.getSilhouette(this.sprites.getAvatarSpriteKey(this.rot, this.rot, "std", "std", 0));
 };
 
 Player.prototype.nextWalkFrame = function() {

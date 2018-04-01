@@ -55,6 +55,11 @@ Room.prototype.prepareFurnidata = function() {
   }.bind(this));
 };
 
+Room.prototype.prepareAvatarImager = function() {
+  this.avatarImager = new AvatarImager();
+  return this.avatarImager.initialize();
+};
+
 Room.prototype.getPlayer = function(id) {
   return (id in this.players) ? this.players[id] : null;
 };
@@ -75,7 +80,7 @@ Room.prototype.setPlayer = function(id, x, y, z, rot, name, look) {
   var player = this.getPlayer(id);
   if (player == null) {
     var p = new Player(id, x, y, z, rot, name, look);
-    p.prepare();
+    p.prepare(this.avatarImager);
     this.players[id] = p;
     this.selectableSprites[p.sprites.colorId] = p;
   } else {
@@ -127,6 +132,7 @@ Room.prototype.prepare = function() {
 
     var p = this.loadSprites();
     p.push(this.prepareFurnidata());
+    p.push(this.prepareAvatarImager());
     p.push(this.chatManager.loadSprites());
 
     Promise.all(p).then(function (loaded) {

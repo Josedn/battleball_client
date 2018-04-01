@@ -52,6 +52,11 @@ Sprites.prototype.loadImage = function (key, src) {
     return d;
 };
 
+Sprites.prototype.loadLocalImage = function(key, img) {
+  this.images[key] = img;
+  this.silhouettes[key] = this.generateSilhouette(img, this.colorR, this.colorG, this.colorB);
+};
+
 Sprites.prototype.getImage = function (key) {
     return (key in this.images) ? this.images[key] : null;
 };
@@ -63,6 +68,73 @@ Sprites.prototype.getSilhouette = function (key) {
 Sprites.prototype.loadFurniAsset = function(asset, key) {
   var totalUrl = Sprites.EXTERNAL_FURNITURE_URL + asset + "/" + key + ".png";
   return this.loadImage(key, totalUrl);
+};
+
+//KEY = DIRECTION_HEADDIRECTION_ACTIONS_GESTURE_FRAME
+Sprites.prototype.getAvatarSpriteKey = function(direction, headDirection, action, gesture, frame) {
+  let actionText = action[0];
+  if (action.length > 1) {
+    actionText += "-" + action[1];
+  }
+  return direction + "_" + headDirection + "_" + actionText + "_" + gesture + "_" + frame;
+};
+
+Sprites.prototype.loadGenericAvatar = function(avatarImager, look, direction, headDirection, action, gesture, frame) {
+  const p = new Promise((resolve, reject) => {
+    avatarImager.generate(new AvatarImage(look, direction, headDirection, action, gesture, frame, false, "n"), (img) => {
+      this.loadLocalImage(this.getAvatarSpriteKey(direction, headDirection, action, gesture, frame), img);
+      resolve();
+    });
+  });
+  return p;
+};
+
+Sprites.prototype.loadAllGenericAvatar = function(look, avatarImager) {
+  const promises = [];
+  //std
+  for (let i = 0; i <= 7; i++) {
+    promises.push(this.loadGenericAvatar(avatarImager, look, i, i, ["std"], "std", 0));
+    //eyb
+    promises.push(this.loadGenericAvatar(avatarImager, look, i, i, ["std"], "eyb", 0));
+    //spk
+    for (let j = 0; j <= 1; j++) {
+      promises.push(this.loadGenericAvatar(avatarImager, look, i, i, ["std"], "spk", j));
+    }
+  }
+  //wlk
+  for (let i = 0; i <= 7; i++) {
+    for (let j = 0; j <= 3; j++) {
+      promises.push(this.loadGenericAvatar(avatarImager, look, i, i, ["wlk"], "std", j));
+      promises.push(this.loadGenericAvatar(avatarImager, look, i, i, ["wlk"], "spk", j));
+    }
+  }
+  //wav
+  for (let i = 0; i <= 7; i++) {
+    for (let j = 0; j <= 1; j++) {
+      promises.push(this.loadGenericAvatar(avatarImager, look, i, i, ["wav"], "std", j));
+      promises.push(this.loadGenericAvatar(avatarImager, look, i, i, ["wav"], "spk", j));
+    }
+  }
+  //wlk-wav
+  for (let i = 0; i <= 7; i++) {
+    for (let j = 0; j <= 3; j++) {
+      promises.push(this.loadGenericAvatar(avatarImager, look, i, i, ["wlk", "wav"], "std", j));
+      promises.push(this.loadGenericAvatar(avatarImager, look, i, i, ["wlk", "wav"], "spk", j));
+    }
+  }
+  //sit
+  for (let i = 0; i <= 7; i++) {
+    promises.push(this.loadGenericAvatar(avatarImager, look, i, i, ["sit"], "std", 0));
+    promises.push(this.loadGenericAvatar(avatarImager, look, i, i, ["sit"], "spk", 0));
+  }
+  //sit-wav
+  for (let i = 0; i <= 7; i++) {
+    for (let j = 0; j <= 1; j++) {
+      promises.push(this.loadGenericAvatar(avatarImager, look, i, i, ["sit", "wav"], "std", j));
+      promises.push(this.loadGenericAvatar(avatarImager, look, i, i, ["sit", "wav"], "spk", j));
+    }
+  }
+  return Promise.all(promises);
 };
 
 Sprites.prototype.loadSimpleAvatar = function (key, look, direction) {

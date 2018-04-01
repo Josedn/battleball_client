@@ -6,6 +6,7 @@ function Player(id, x, y, z, rot, name, look)
   this.ready = false;
   this.waveCounter = 0;
   this.speakCounter = 0;
+  this.blinkCounter = 0;
   this.genericFrame = 0;
   this.genericFrameCounter = 0;
   this.showSignCounter = 0;
@@ -68,6 +69,11 @@ Player.prototype.getCurrentAvatarSpriteKey = function() {
     action = ["wlk", "wav"];
     frame = this.genericFrame;
   }
+  if (!this.isWalking() && !this.isWaving() && this.blinkCounter > 3800) {
+    gesture = "eyb";
+    action = ["std"];
+    frame = 0;
+  }
   return this.sprites.getAvatarSpriteKey(this.rot, this.rot, action, gesture, frame);
 };
 Player.prototype.currentSprite = function() {
@@ -106,6 +112,11 @@ Player.prototype.tick = function(delta) {
   }
   if (this.speakCounter > 0) {
     this.speakCounter -= delta;
+  }
+  if (this.blinkCounter > 0) {
+    this.blinkCounter -= delta;
+  } else {
+    this.blinkCounter = 4000;
   }
 };
 

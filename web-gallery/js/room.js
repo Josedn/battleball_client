@@ -184,6 +184,7 @@ Room.prototype.addChat = function(userId, text) {
   var player = this.getPlayer(userId);
   if (player != null) {
     this.chatManager.addChat(player, text);
+    player.speak(1.5);
   }
 };
 

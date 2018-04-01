@@ -137,52 +137,9 @@ Sprites.prototype.loadAllGenericAvatar = function(look, avatarImager) {
   return Promise.all(promises);
 };
 
-Sprites.prototype.loadSimpleAvatar = function (key, look, direction) {
-  var totalUrl = Sprites.EXTERNAL_IMAGER_URL + look + '&direction=' + direction + '&head_direction=' + direction;
-  return this.loadImage(key, totalUrl);
-};
-
-Sprites.prototype.loadWavingAvatar = function (key, look, direction, frame) {
-  var totalUrl = Sprites.EXTERNAL_IMAGER_URL + look + '&direction=' + direction + '&head_direction=' + direction + '&action=wav&frame=' + (frame);
-  return this.loadImage(key, totalUrl);
-};
-
-Sprites.prototype.loadWalkingAvatar = function (key, look, direction, frame) {
-  var totalUrl = Sprites.EXTERNAL_IMAGER_URL + look + '&direction=' + direction + '&head_direction=' + direction + '&action=wlk&frame=' + (frame);
-  return this.loadImage(key, totalUrl);
-};
-
 Sprites.prototype.loadHeadAvatar = function(key, look) {
   var totalUrl = Sprites.EXTERNAL_IMAGER_URL + look + '&direction=2&head_direction=2&size=s&headonly=1';
   return this.loadImage(key, totalUrl);
-};
-
-Sprites.prototype.loadAllSimpleAvatar = function (key, look) {
-  var p = [];
-  for (var i = 0; i <= 7; i++) {
-      p.push(this.loadSimpleAvatar(key + "_" + i, look, i));
-  }
-  return Promise.all(p);
-}
-
-Sprites.prototype.loadAllWalkingAvatar = function (key, look) {
-  var p = [];
-  for (var i = 0; i <= 7; i++) {
-    for (var j = 0; j <= 3; j++) {
-      p.push(this.loadWalkingAvatar(key + "_" + i + "_" + j, look, i, j));
-    }
-  }
-  return Promise.all(p);
-}
-
-Sprites.prototype.loadAllWavingAvatar = function(key, look) {
-  var p = [];
-  for (var i = 0; i <= 7; i++) {
-    for (var j = 0; j <= 1; j++) {
-      p.push(this.loadWavingAvatar(key + "_" + i + "_" + j, look, i, j));
-    }
-  }
-  return Promise.all(p);
 };
 
 Sprites.prototype.generateSilhouette = function(img, r, g, b) {

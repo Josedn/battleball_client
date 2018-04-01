@@ -4,11 +4,10 @@ function Player(id, x, y, z, rot, name, look)
 {
   this.id = id;
   this.ready = false;
-  this.walkFrame = 0;
-  this.walkFrameCounter = 0;
-  this.waveFrame = 0;
-  this.waveFrameCounter = 0;
   this.waveCounter = 0;
+  this.speakCounter = 0;
+  this.genericFrame = 0;
+  this.genericFrameCounter = 0;
   this.showSignCounter = 0;
   this.updateParams(x, y, z, rot, name, look);
   this.sprites = new Sprites();
@@ -33,6 +32,7 @@ Player.prototype.prepare = function(avatarImager) {
 Player.prototype.loadSprites = function(avatarImager) {
   return [
     this.sprites.loadAllGenericAvatar(this.look, avatarImager),
+    this.sprites.loadHeadAvatar('head', this.look)
   ];
 };
 
@@ -44,23 +44,34 @@ Player.prototype.isWaving = function() {
   return this.waveCounter > 0;
 };
 
-Player.prototype.currentSprite = function() {
+Player.prototype.isSpeaking = function() {
+  return this.speakCounter > 0;
+};
+
+Player.prototype.getCurrentAvatarSpriteKey = function() {
   let action = ["std"];
   let gesture = "std";
   let frame = 0;
-  if (this.isWalking()) {
-    action = ["wlk"];
-    frame = this.walkFrame;
-  }
   if (this.isWaving()) {
     action = ["wav"];
-    frame = this.waveFrame;
+    frame = this.genericFrame % 2;
+  }
+  if (this.isSpeaking()) {
+    gesture = "spk";
+    frame = this.genericFrame % 2;
+  }
+  if (this.isWalking()) {
+    action = ["wlk"];
+    frame = this.genericFrame;
   }
   if (this.isWalking() && this.isWaving()) {
     action = ["wlk", "wav"];
-    frame = this.walkFrame;
+    frame = this.genericFrame;
   }
-  return this.sprites.getImage(this.sprites.getAvatarSpriteKey(this.rot, this.rot, action, gesture, frame));
+  return this.sprites.getAvatarSpriteKey(this.rot, this.rot, action, gesture, frame);
+};
+Player.prototype.currentSprite = function() {
+  return this.sprites.getImage(this.getCurrentAvatarSpriteKey());
 };
 
 Player.prototype.headSprite = function() {
@@ -68,48 +79,33 @@ Player.prototype.headSprite = function() {
 };
 
 Player.prototype.currentSilhouette = function() {
-  /*if (this.isWalking()) {
-    return this.sprites.getSilhouette('walking_' + this.rot + "_" + this.walkFrame);
-  } else if (this.isWaving()) {
-    return this.sprites.getSilhouette('waving_' + this.rot + "_" + this.waveFrame);
-  }
-  return this.sprites.getSilhouette('simple_' + this.rot);*/
-  return this.sprites.getSilhouette(this.sprites.getAvatarSpriteKey(this.rot, this.rot, "std", "std", 0));
+  return this.sprites.getSilhouette(this.getCurrentAvatarSpriteKey());
 };
 
-Player.prototype.nextWalkFrame = function() {
-  this.walkFrame++;
-  if (this.walkFrame >= 4) {
-    this.walkFrame = 0;
+Player.prototype.nextGenericFrame = function() {
+  this.genericFrame++;
+  if (this.genericFrame >= 4) {
+    this.genericFrame = 0;
   }
-};
-
-Player.prototype.nextWaveFrame = function() {
-  this.waveFrame++;
-  if (this.waveFrame >= 2) {
-    this.waveFrame = 0;
-  }
-};
+}
 
 Player.prototype.tick = function(delta) {
+  this.genericFrameCounter += delta;
+  if (this.genericFrameCounter >= 100) {
+    this.nextGenericFrame();
+    this.genericFrameCounter = 0;
+  }
   if (this.isWalking()) {
-    this.walkFrameCounter += delta;
-    if (this.walkFrameCounter >= 100) {
-      this.nextWalkFrame();
-      this.walkFrameCounter = 0;
-    }
     this.move(delta);
   }
   if (this.showSignCounter > 0) {
     this.showSignCounter -= delta;
   }
   if (this.waveCounter > 0) {
-    this.waveFrameCounter += delta;
-    if (this.waveFrameCounter >= 100) {
-      this.nextWaveFrame();
-      this.waveFrameCounter = 0;
-    }
     this.waveCounter -= delta;
+  }
+  if (this.speakCounter > 0) {
+    this.speakCounter -= delta;
   }
 };
 
@@ -124,6 +120,10 @@ Player.prototype.shouldShowSign = function() {
 Player.prototype.wave = function(seconds) {
   this.waveCounter = seconds * 1000;
 };
+
+Player.prototype.speak = function(seconds) {
+  this.speakCounter = seconds * 1000;
+}
 
 Player.prototype.setMovement = function(x, y, rot) {
   this.targetX = x;

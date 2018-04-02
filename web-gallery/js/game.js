@@ -62,6 +62,8 @@ Game.run = function(canvas) {
   this.queuedLogin = false;
   this.onResize();
 
+  updateStatus("Loading...");
+
   this.prepareAvatarImager().then(() => {
     this.tryConnect();
     window.requestAnimationFrame(this.tick);

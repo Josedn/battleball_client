@@ -126,7 +126,11 @@ Sprites.prototype.loadAllGenericGhost = function(avatarImager) {
   //sit
   for (let i = 0; i <= 7; i++) {
     promises.push(this.loadGenericGhost(avatarImager, look, i, i, ["sit"], "std", 0));
-    promises.push(this.loadGenericGhost(avatarImager, look, i, i, ["sit"], "spk", 0));
+    //eyb
+    promises.push(this.loadGenericGhost(avatarImager, look, i, i, ["sit"], "eyb", 0));
+    //spk
+    for (let j = 0; j <= 1; j++) {
+      promises.push(this.loadGenericGhost(avatarImager, look, i, i, ["sit"], "spk", j));
   }
   //sit-wav
   for (let i = 0; i <= 7; i++) {
@@ -184,7 +188,12 @@ Sprites.prototype.loadAllGenericAvatar = function(look, avatarImager) {
   //sit
   for (let i = 0; i <= 7; i++) {
     promises.push(this.loadGenericAvatar(avatarImager, look, i, i, ["sit"], "std", 0));
-    promises.push(this.loadGenericAvatar(avatarImager, look, i, i, ["sit"], "spk", 0));
+    //eyb
+    promises.push(this.loadGenericAvatar(avatarImager, look, i, i, ["sit"], "eyb", 0));
+    //spk
+    for (let j = 0; j <= 1; j++) {
+      promises.push(this.loadGenericAvatar(avatarImager, look, i, i, ["sit"], "spk", j));
+    }
   }
   //sit-wav
   for (let i = 0; i <= 7; i++) {

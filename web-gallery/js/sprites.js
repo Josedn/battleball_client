@@ -131,6 +131,7 @@ Sprites.prototype.loadAllGenericGhost = function(avatarImager) {
     //spk
     for (let j = 0; j <= 1; j++) {
       promises.push(this.loadGenericGhost(avatarImager, look, i, i, ["sit"], "spk", j));
+    }
   }
   //sit-wav
   for (let i = 0; i <= 7; i++) {

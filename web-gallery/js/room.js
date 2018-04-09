@@ -20,6 +20,8 @@ function Room(cols, rows, doorX, doorY, heightmap, game) {
   this.ready = false;
   this.selectedScreenX = 0;
   this.selectedScreenY = 0;
+  this.mouseOverPlayer = null;
+  this.selectedPlayer = null;
   this.players = {};
   this.selectableSprites = {};
   this.furniture = {};
@@ -287,8 +289,8 @@ Room.prototype.drawSign = function(player) {
 };
 
 Room.prototype.tickSelectedUserSign = function() {
-  var selectedPlayer = this.trySelectPlayer(this.selectedScreenX, this.selectedScreenY);
-  if (selectedPlayer != null ) {
+  var selectedPlayer = this.mouseOverPlayer;
+  if (selectedPlayer != null) {
     selectedPlayer.showSign(0.2);
   }
 };
@@ -419,6 +421,8 @@ Room.prototype.onMouseMove = function(x, y, isDrag) {
 
   this.selectedScreenX = Math.round(x);
   this.selectedScreenY = Math.round(y);
+
+  this.mouseOverPlayer = this.trySelectPlayer(this.selectedScreenX, this.selectedScreenY);
 };
 
 Room.prototype.onTouchStart = function(x, y) {

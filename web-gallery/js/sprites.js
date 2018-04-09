@@ -70,6 +70,10 @@ Sprites.prototype.loadFurniAsset = function(asset, key) {
   return this.loadImage(key, totalUrl);
 };
 
+Sprites.prototype.getFurnitureSpriteKey = function(itemId, direction, stateId, frame) {
+  return itemId + "_64_" + direction + "_" + stateId + "_" + frame;
+};
+
 //KEY = DIRECTION_HEADDIRECTION_ACTIONS_GESTURE_FRAME
 Sprites.prototype.getAvatarSpriteKey = function(direction, headDirection, action, gesture, frame) {
   let actionText = action[0];

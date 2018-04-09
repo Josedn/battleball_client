@@ -36,25 +36,6 @@ function Room(cols, rows, doorX, doorY, heightmap, game) {
   });
 }
 
-Room.prototype.prepareFurnidata = function() {
-  return new Promise(function (resolve, reject) {
-    var r = new XMLHttpRequest();
-    r.open("GET", Furni.FURNIDATA_URL, true);
-    r.onreadystatechange = function () {
-      if (r.readyState != 4 || r.status != 200) {
-        if (r.status == 404) {
-          reject("Error downloading furnidata");
-        }
-        return;
-      }
-      this.furnidata = JSON.parse(r.responseText);
-      updateStatus("Furnidata ok");
-      resolve();
-    }.bind(this);
-    r.send();
-  }.bind(this));
-};
-
 Room.prototype.getPlayer = function(id) {
   return (id in this.players) ? this.players[id] : null;
 };
@@ -84,11 +65,16 @@ Room.prototype.setPlayer = function(id, x, y, z, rot, name, look) {
 };
 
 Room.prototype.setFurni = function(id, x, y, z, rot, baseId) {
-  if (this.furnidata[baseId] != null) {
+  const translations = {"1": "1620", "2": "234", "3": "1640"};
+  baseId = translations[baseId];
+  if (baseId == 234) {
+    rot = 0;
+  }
+  if (this.game.furnitureImager.isValidId(baseId)) {
     var furni = this.getFurni(id);
     if (furni == null) {
-      var f = new Furni(id, x, y, z, rot, this.furnidata[baseId]);
-      f.prepare();
+      var f = new Furni(id, x, y, z, rot, baseId);
+      f.prepare(this.game.furnitureImager);
       this.furniture[id] = f;
       this.selectableSprites[f.sprites.colorId] = f;
     } else {
@@ -126,7 +112,6 @@ Room.prototype.prepare = function() {
   return new Promise(function (resolve, reject) {
 
     var p = this.loadSprites();
-    p.push(this.prepareFurnidata());
     p.push(this.chatManager.loadSprites());
 
     Promise.all(p).then(function (loaded) {

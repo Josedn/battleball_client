@@ -93,7 +93,7 @@ Player.prototype.nextGenericFrame = function() {
   if (this.genericFrame >= 4) {
     this.genericFrame = 0;
   }
-}
+};
 
 Player.prototype.tick = function(delta) {
   this.genericFrameCounter += delta;

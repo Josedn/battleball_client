@@ -64,15 +64,16 @@ Game.run = function(canvas) {
 
   updateStatus("Loading...");
 
-  this.prepareAvatarImager().then(() => {
+  this.prepareImagers().then(() => {
     this.tryConnect();
     window.requestAnimationFrame(this.tick);
   });
 }.bind(Game);
 
-Game.prepareAvatarImager = function() {
+Game.prepareImagers = function() {
   this.avatarImager = new AvatarImager();
-  return this.avatarImager.initialize();
+  this.furnitureImager = new FurnitureImager();
+  return Promise.all([this.avatarImager.initialize(), this.furnitureImager.initialize()]);
 };
 
 Game.tryConnect = function() {

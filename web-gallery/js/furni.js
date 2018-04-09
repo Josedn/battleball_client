@@ -3,32 +3,38 @@ Furni.INTERNAL_DRAWING_OFFSET_X = -132;
 Furni.INTERNAL_DRAWING_OFFSET_Y = -116;
 Furni.FURNIDATA_URL = "./furnidata.json";
 
-function Furni(id, x, y, z, rot, base) {
+function Furni(id, x, y, z, rot, baseId) {
   this.id = id;
   this.x = x;
   this.y = y;
   this.z = z;
   this.rot = rot;
-  this.base = base;
+  this.state = 1;
+  this.genericFrame = 0;
+  this.genericFrameCounter = 0;
+  this.baseId = baseId;
   this.ready = false;
   this.sprites = new Sprites();
 }
 
-Furni.prototype.loadSprites = function() {
-  var spritesToLoad = [];
-  Object.keys(this.base.assets).forEach(key => {
-    spritesToLoad.push(this.sprites.loadFurniAsset(this.base.assetName, key));
+Furni.prototype.loadSprites = function(furnitureImager) {
+  let allSpritesPromise = furnitureImager.generateAll(this.baseId, 64);
+  allSpritesPromise.then((base) => {
+    this.baseItem = base;
+    for (spriteId in this.baseItem.sprites) {
+      this.sprites.loadLocalImage(spriteId, this.baseItem.sprites[spriteId]);
+    }
   });
-  return spritesToLoad;
+  return [allSpritesPromise];
 };
 
-Furni.prototype.prepare = function() {
+Furni.prototype.prepare = function(furnitureImager) {
   return new Promise(function (resolve, reject) {
 
-    var p = this.loadSprites();
+    var p = this.loadSprites(furnitureImager);
 
     Promise.all(p).then(function (loaded) {
-      updateStatus("Sprites loaded (" + this.base.assetName + " furniId:" + this.id + ")");
+      updateStatus("Sprites loaded (" + this.baseItem.itemName + " furniId:" + this.id + ")");
       this.ready = true;
       resolve();
     }.bind(this),
@@ -44,44 +50,31 @@ Furni.prototype.updateParams = function(x, y, z, base) {
   this.x = x;
   this.y = y;
   this.z = z;
-  if (base != this.base) {
-    this.base = base;
-    this.prepare();
+};
+
+Furni.prototype.nextGenericFrame = function() {
+  this.genericFrame++;
+  if (this.genericFrame >= this.baseItem.states[this.state]) {
+    this.genericFrame = 0;
   }
 };
 
 Furni.prototype.tick = function(delta) {
+  this.genericFrameCounter += delta;
+  if (this.genericFrameCounter >= 100) {
+    this.nextGenericFrame();
+    this.genericFrameCounter = 0;
+  }
+};
 
+Furni.prototype.getCurrentFurniSpriteKey = function() {
+  return this.sprites.getFurnitureSpriteKey(this.baseItem.itemId, this.rot, this.state, this.genericFrame);
 };
 
 Furni.prototype.currentSprite = function() {
-  var tempCanvas = document.createElement('canvas');
-  var tempCtx = tempCanvas.getContext('2d');
-  var x = -Furni.INTERNAL_DRAWING_OFFSET_X;
-  var y = -Furni.INTERNAL_DRAWING_OFFSET_Y;
-
-  Object.keys(this.base.assets).forEach(key => {
-    var asset = this.base.assets[key];
-    if (asset.alpha != null) {
-      tempCtx.save();
-      tempCtx.globalAlpha = asset.alpha;
-    }
-    tempCtx.drawImage(this.sprites.getImage(key), x - asset.x, y - asset.y);
-    if (asset.alpha != null) {
-      tempCtx.restore();
-    }
-  });
-  return tempCanvas;
+  return this.sprites.getImage(this.getCurrentFurniSpriteKey());
 };
 
 Furni.prototype.currentSilhouette = function() {
-  var tempCanvas = document.createElement('canvas');
-  var tempCtx = tempCanvas.getContext('2d');
-  var x = -Furni.INTERNAL_DRAWING_OFFSET_X;
-  var y = -Furni.INTERNAL_DRAWING_OFFSET_Y;
-
-  Object.keys(this.base.assets).forEach(key => {
-    tempCtx.drawImage(this.sprites.getSilhouette(key), x - this.base.assets[key].x, y - this.base.assets[key].y);
-  });
-  return tempCanvas;
+  return this.sprites.getSilhouette(this.getCurrentFurniSpriteKey());
 };

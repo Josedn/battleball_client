@@ -60,6 +60,7 @@ Game.run = function(canvas) {
 
   this._previousElapsed = 0;
   this.queuedLogin = false;
+  this.isConnecting = true;
   this.onResize();
 
   updateStatus("Loading...");
@@ -77,6 +78,7 @@ Game.prepareImagers = function() {
 };
 
 Game.tryConnect = function() {
+  this.isConnecting = true;
   this.connection = new Connection(this);
   updateStatus("Connecting to server...");
 }.bind(Game);
@@ -111,7 +113,9 @@ Game.queueLogin = function(username, look) {
     this.doLogin(username, look);
   } else {
     this.queuedLogin = true;
-    this.tryConnect();
+    if (this.isConnecting) {
+      this.tryConnect();
+    }
   }
 };
 
@@ -172,6 +176,7 @@ Game.handleMessage = function(data) {
 Game.handleClosedConnection = function() {
   this.currentRoom = null;
   this.communication = null;
+  this.isConnecting = false;
   updateStatus("Connection is closed");
   updateStatus("Lost connection!");
   showBox();

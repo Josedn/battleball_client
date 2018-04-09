@@ -289,6 +289,12 @@ FurnitureImager.prototype.generateRoomItem = function(itemId, direction, state, 
   tempCanvas.width = 350;
   tempCanvas.height = 350;
 
+  let tempCanvasAdd = document.createElement('canvas');
+  let tempCtxAdd = tempCanvasAdd.getContext('2d');
+  tempCanvasAdd.width = 350;
+  tempCanvasAdd.height = 350;
+  tempCtxAdd.globalCompositeOperation = "lighter";
+
   //tempCtx.fillStyle = "#ffffff";
   //tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
 
@@ -377,19 +383,21 @@ FurnitureImager.prototype.generateRoomItem = function(itemId, direction, state, 
             if (chunk.layerData.alpha != null) {
               img = this.tintSprite(img, "ffffff", chunk.layerData.alpha);
             }
-            if (chunk.layerData.ink != null && chunk.layerData.ink == "ADD") {
-              tempCtx.globalCompositeOperation = "lighter";
-            } else {
-              tempCtx.globalCompositeOperation = "source-over";
-            }
             if (chunk.color != null) {
               img = this.tintSprite(img, chunk.color, 255);
             }
-            tempCtx.drawImage(img, posX, posY);
+            if (chunk.layerData.ink != null && chunk.layerData.ink == "ADD") {
+              //tempCtx.globalCompositeOperation = "lighter";
+              tempCtxAdd.drawImage(img, posX, posY);
+            } else {
+              //tempCtx.globalCompositeOperation = "source-over";
+              tempCtx.drawImage(img, posX, posY);
+            }
           }
         }
 
         this.bases[itemId].sprites[key] = tempCanvas;
+        this.bases[itemId].sprites[key + "_add"] = tempCanvasAdd;
         resolve(tempCanvas);
       });
 

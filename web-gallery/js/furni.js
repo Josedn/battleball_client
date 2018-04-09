@@ -75,6 +75,10 @@ Furni.prototype.currentSprite = function() {
   return this.sprites.getImage(this.getCurrentFurniSpriteKey());
 };
 
+Furni.prototype.currentSpriteAdd = function() {
+  return this.sprites.getImage(this.getCurrentFurniSpriteKey() + "_add");
+};
+
 Furni.prototype.currentSilhouette = function() {
   return this.sprites.getSilhouette(this.getCurrentFurniSpriteKey());
 };

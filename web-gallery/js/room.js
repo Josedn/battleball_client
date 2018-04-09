@@ -244,7 +244,7 @@ Room.prototype.drawFurniture = function() {
   Object.keys(this.furniture).forEach(key => {
     if (this.furniture[key] != null) {
       if (this.furniture[key].ready) {
-        this.drawQueue.queue(new IsometricDrawableSprite(this.furniture[key].currentSprite(), null, this.furniture[key].x, this.furniture[key].y, this.furniture[key].z, Furni.DRAWING_OFFSET, Furni.DRAWING_OFFSET, DrawableSprite.PRIORITY_FURNI));
+        this.drawQueue.queue(new IsometricDrawableDualSpriteAdditive(this.furniture[key].currentSprite(), this.furniture[key].currentSpriteAdd(), this.furniture[key].currentSilhouette(), this.furniture[key].x, this.furniture[key].y, this.furniture[key].z, Furni.DRAWING_OFFSET, Furni.DRAWING_OFFSET, DrawableSprite.PRIORITY_FURNI));
       } else {
         this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage('furni_placeholder'), null, this.furniture[key].x, this.furniture[key].y, this.furniture[key].z, -2, -33, DrawableSprite.PRIORITY_FURNI));
       }
@@ -307,7 +307,12 @@ Room.prototype.draw = function() {
     var screenX = Math.round(drawable.getScreenX() + this.camera.x);
     var screenY = Math.round(drawable.getScreenY() + this.camera.y);
     //if (screenX > 0 && screenY > 0 && screenX < this.camera.width - 100 && screenY < this.camera.height) {
+    ctx.globalCompositeOperation = "source-over";
     ctx.drawImage(drawable.sprite, screenX, screenY);
+    if (drawable.additiveSprite != null) {
+      ctx.globalCompositeOperation = "lighter";
+      ctx.drawImage(drawable.additiveSprite, screenX, screenY);
+    }
     if (drawable.selectableSprite != null) {
       auxCtx.drawImage(drawable.selectableSprite, screenX, screenY);
     }
@@ -356,10 +361,22 @@ Room.prototype.trySelectPlayer = function(x, y) {
   return null;
 };
 
+Room.prototype.trySelectFurni = function(x, y) {
+  var p = this.game.auxCtx.getImageData(x, y, 1, 1).data;
+  var selectedFurni = this.getFurniFromSelectId(Sprites.rgb2int(p[0], p[1], p[2]));
+  if (selectedFurni != null) {
+    return selectedFurni;
+  }
+  return null;
+};
+
 Room.prototype.onMouseClick = function(x, y) {
   var selectedPlayer = this.trySelectPlayer(x, y);
+  var selectedFurni = this.trySelectFurni(x, y);
   if (selectedPlayer != null ) {
     this.onSelectPlayer(selectedPlayer);
+  } else if (selectedFurni != null) {
+
   } else {
     var offsetX = this.camera.x;
     var offsetY = this.camera.y;

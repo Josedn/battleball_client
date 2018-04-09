@@ -113,7 +113,7 @@ Game.queueLogin = function(username, look) {
     this.doLogin(username, look);
   } else {
     this.queuedLogin = true;
-    if (this.isConnecting) {
+    if (!this.isConnecting) {
       this.tryConnect();
     }
   }

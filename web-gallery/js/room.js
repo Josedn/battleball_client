@@ -1,3 +1,25 @@
+function PrepareQueue() {
+  this.queue = [];
+  this.currentPromise = null;
+};
+
+PrepareQueue.prototype.push = function(promise, params) {
+  this.queue.push({promise, params});
+  if (this.currentPromise == null && this.queue.length == 1) {
+    this.moveNext();
+  }
+};
+
+PrepareQueue.prototype.moveNext = function(){
+  if (this.currentPromise == null && this.queue.length > 0) {
+    this.currentPromise = this.queue.shift();
+    this.currentPromise.promise(this.currentPromise.params).then(() => {
+      this.currentPromise = null;
+      this.moveNext();
+    });
+  }
+};
+
 function Camera(room) {
   this.room = room;
   this.reset();
@@ -36,6 +58,7 @@ function Room(cols, rows, doorX, doorY, heightmap, game) {
       return a.getComparableItem() - b.getComparableItem();
     }.bind(this)
   });
+  this.prepareQueue = new PrepareQueue();
 }
 
 Room.prototype.getPlayer = function(id) {
@@ -58,7 +81,8 @@ Room.prototype.setPlayer = function(id, x, y, z, rot, name, look) {
   var player = this.getPlayer(id);
   if (player == null) {
     var p = new Player(id, x, y, z, rot, name, look);
-    p.prepare(this.game.avatarImager);
+    this.prepareQueue.push(p.prepare.bind(p), this.game.avatarImager);
+    //p.prepare(this.game.avatarImager);
     this.players[id] = p;
     this.selectableSprites[p.sprites.colorId] = p;
   } else {
@@ -76,7 +100,8 @@ Room.prototype.setFurni = function(id, x, y, z, rot, baseId) {
     var furni = this.getFurni(id);
     if (furni == null) {
       var f = new Furni(id, x, y, z, rot, baseId);
-      f.prepare(this.game.furnitureImager);
+      this.prepareQueue.push(f.prepare.bind(f), this.game.furnitureImager);
+      //f.prepare(this.game.furnitureImager);
       this.furniture[id] = f;
       this.selectableSprites[f.sprites.colorId] = f;
     } else {

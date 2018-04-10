@@ -16,7 +16,7 @@ function Player(id, x, y, z, rot, name, look)
 }
 
 Player.prototype.prepare = function(avatarImager) {
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
     var p = this.loadSprites(avatarImager);
     Promise.all(p).then(function (loaded) {
       updateStatus("Sprites loaded (" + this.name + ")");
@@ -25,9 +25,10 @@ Player.prototype.prepare = function(avatarImager) {
     }.bind(this),
     function (error) {
       updateStatus("Error loading sprites: " + error);
-      reject("Error loading sprites: " + error);
+      //reject("Error loading sprites: " + error);
+      resolve("Error loading sprites: " + error);
     }.bind(this))
-  }.bind(this));
+  });
 };
 
 Player.prototype.loadSprites = function(avatarImager) {

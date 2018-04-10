@@ -29,7 +29,7 @@ Furni.prototype.loadSprites = function(furnitureImager) {
 };
 
 Furni.prototype.prepare = function(furnitureImager) {
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
 
     var p = this.loadSprites(furnitureImager);
 
@@ -41,9 +41,10 @@ Furni.prototype.prepare = function(furnitureImager) {
 
     function (error) {
       updateStatus("Error loading sprites: " + error);
-      reject("Error loading sprites: " + error);
+      //reject("Error loading sprites: " + error);
+      resolve("Error loading sprites: " + error);
     }.bind(this))
-  }.bind(this));
+  });
 };
 
 Furni.prototype.updateParams = function(x, y, z, base) {

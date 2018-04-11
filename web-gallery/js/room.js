@@ -1,7 +1,7 @@
 function PrepareQueue() {
   this.queue = [];
   this.currentPromise = null;
-};
+}
 
 PrepareQueue.prototype.push = function(promise, params) {
   this.queue.push({promise, params});
@@ -90,22 +90,25 @@ Room.prototype.setPlayer = function(id, x, y, z, rot, name, look) {
   }
 };
 
-Room.prototype.setFurni = function(id, x, y, z, rot, baseId) {
-  const translations = {"1": "1620", "2": "234", "3": "1640"};
-  baseId = translations[baseId];
-  if (baseId == 234) {
-    rot = 0;
+Room.prototype.setFurniState = function(itemId, state) {
+  var furni = this.getFurni(itemId);
+  if (furni != null) {
+    furni.setState(state);
   }
+};
+
+Room.prototype.setFurni = function(id, x, y, z, rot, baseId, state) {
+  console.log("BaseId: " + baseId);
   if (this.game.furnitureImager.isValidId(baseId)) {
     var furni = this.getFurni(id);
     if (furni == null) {
-      var f = new Furni(id, x, y, z, rot, baseId);
+      var f = new Furni(id, x, y, z, rot, baseId, state);
       this.prepareQueue.push(f.prepare.bind(f), this.game.furnitureImager);
       //f.prepare(this.game.furnitureImager);
       this.furniture[id] = f;
       this.selectableSprites[f.sprites.colorId] = f;
     } else {
-      furni.updateParams(x, y, z, rot, this.furnidata[baseId]);
+      furni.updateParams(x, y, z, rot, baseId, state);
     }
   }
 };
@@ -379,6 +382,10 @@ Room.prototype.onSelectPlayer = function(player) {
   player.showSign(5);
 };
 
+Room.prototype.onSelectFurni = function(furni) {
+  this.game.communication.requestInteractFurni(furni.id);
+};
+
 Room.prototype.trySelectPlayer = function(x, y) {
   var p = this.game.auxCtx.getImageData(x, y, 1, 1).data;
   var selectedPlayer = this.getPlayerFromSelectId(Sprites.rgb2int(p[0], p[1], p[2]));
@@ -399,11 +406,8 @@ Room.prototype.trySelectFurni = function(x, y) {
 
 Room.prototype.onMouseClick = function(x, y) {
   var selectedPlayer = this.trySelectPlayer(x, y);
-  var selectedFurni = this.trySelectFurni(x, y);
   if (selectedPlayer != null ) {
     this.onSelectPlayer(selectedPlayer);
-  } else if (selectedFurni != null) {
-
   } else {
     var offsetX = this.camera.x;
     var offsetY = this.camera.y;
@@ -421,17 +425,22 @@ Room.prototype.onMouseClick = function(x, y) {
 };
 
 Room.prototype.onMouseDoubleClick = function(x, y) {
-  var offsetX = this.camera.x;
-  var offsetY = this.camera.y;
+  var selectedFurni = this.trySelectFurni(x, y);
+  if (selectedFurni != null) {
+    this.onSelectFurni(selectedFurni);
+  } else {
+    var offsetX = this.camera.x;
+    var offsetY = this.camera.y;
 
-  var xminusy = (x - 32 - offsetX) / Game.TILE_H;
-  var xplusy =  (y - offsetY) * 2 / Game.TILE_H;
+    var xminusy = (x - 32 - offsetX) / Game.TILE_H;
+    var xplusy =  (y - offsetY) * 2 / Game.TILE_H;
 
-  var tileX = Math.floor((xminusy + xplusy) / 2);
-  var tileY = Math.floor((xplusy - xminusy) / 2);
+    var tileX = Math.floor((xminusy + xplusy) / 2);
+    var tileY = Math.floor((xplusy - xminusy) / 2);
 
-  if (!this.isValidTile(tileX, tileY)) {
-    this.camera.reset();
+    if (!this.isValidTile(tileX, tileY)) {
+      this.camera.reset();
+    }
   }
 };
 

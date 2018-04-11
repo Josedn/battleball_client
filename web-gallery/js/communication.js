@@ -5,6 +5,7 @@ Communication.OUTGOING_REQUEST_CHAT = 9;
 Communication.OUTGOING_REQUEST_LOOK_AT = 12;
 Communication.OUTGOING_REQUEST_WAVE = 13;
 Communication.OUTGOING_REQUEST_ROOM_DATA = 15;
+Communication.OUTGOING_REQUEST_FURNI_INTERACT = 18;
 
 Communication.INCOMING_LOGIN_OK = 3;
 Communication.INCOMING_MAP_DATA = 4;
@@ -15,6 +16,7 @@ Communication.INCOMING_PLAYER_REMOVE = 11;
 Communication.INCOMING_PLAYER_WAVE = 14;
 Communication.INCOMING_FURNI_DATA = 16;
 Communication.INCOMING_FURNI_REMOVE = 17;
+Communication.INCOMING_FURNI_STATE = 19;
 
 function Communication(game) {
   this.game = game;
@@ -61,6 +63,12 @@ Communication.prototype.requestWave = function() {
   this.game.connection.sendMessage(message);
 };
 
+Communication.prototype.requestInteractFurni = function(itemId) {
+  var message = new ClientMessage(Communication.OUTGOING_REQUEST_FURNI_INTERACT);
+  message.appendInt(itemId);
+  this.game.connection.sendMessage(message);
+};
+
 Communication.prototype.handleMessage = function(data) {
   var request = new ServerMessage(data);
   switch (request.id)
@@ -91,6 +99,9 @@ Communication.prototype.handleMessage = function(data) {
       break;
     case Communication.INCOMING_FURNI_REMOVE:
       this.handleRemoveFurni(request);
+      break;
+    case Communication.INCOMING_FURNI_STATE:
+      this.handleFurniState(request);
       break;
   }
 };
@@ -146,10 +157,19 @@ Communication.prototype.handleFurni = function(request) {
     var z  = parseFloat(request.popString());
     var rot = request.popInt();
     var baseId = request.popInt();
+    var state = request.popInt();
 
     if (this.game.currentRoom != null) {
-      this.game.currentRoom.setFurni(id, x, y, z, rot, baseId);
+      this.game.currentRoom.setFurni(id, x, y, z, rot, baseId, state);
     }
+  }
+};
+
+Communication.prototype.handleFurniState = function(request) {
+  var itemId = request.popInt();
+  var state = request.popInt();
+  if (this.game.currentRoom != null) {
+    this.game.currentRoom.setFurniState(itemId, state);
   }
 };
 

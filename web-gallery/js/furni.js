@@ -1,15 +1,13 @@
 Furni.DRAWING_OFFSET = -100;
-Furni.INTERNAL_DRAWING_OFFSET_X = -132;
-Furni.INTERNAL_DRAWING_OFFSET_Y = -116;
 Furni.FURNIDATA_URL = "./furnidata.json";
 
-function Furni(id, x, y, z, rot, baseId) {
+function Furni(id, x, y, z, rot, baseId, state) {
   this.id = id;
   this.x = x;
   this.y = y;
   this.z = z;
   this.rot = rot;
-  this.state = 1;
+  this.state = state;
   this.genericFrame = 0;
   this.genericFrameCounter = 0;
   this.baseId = baseId;
@@ -47,10 +45,15 @@ Furni.prototype.prepare = function(furnitureImager) {
   });
 };
 
-Furni.prototype.updateParams = function(x, y, z, base) {
+Furni.prototype.updateParams = function(x, y, z, baseId) {
   this.x = x;
   this.y = y;
   this.z = z;
+};
+
+Furni.prototype.setState = function(state) {
+  this.state = state;
+  this.genericFrame = 0;
 };
 
 Furni.prototype.nextGenericFrame = function() {

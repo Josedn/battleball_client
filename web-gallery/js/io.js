@@ -2,7 +2,7 @@ function Connection(messageHandler) {
   this.connected = false;
   var wsImpl = window.WebSocket || window.MozWebSocket;
   // create a new websocket and connect
-  this.ws = new wsImpl('ws://bobba.io:443/');
+  this.ws = new wsImpl('ws://127.0.0.1:443/');
 
   // when data is comming from the server, this metod is called
   this.ws.onmessage = function (evt) {
@@ -54,6 +54,10 @@ ServerMessage.prototype.popToken = function() {
 
 ServerMessage.prototype.popInt = function() {
   return parseInt(this.popToken());
+};
+
+ServerMessage.prototype.popFloat = function() {
+  return parseFloat(this.popToken());
 };
 
 ServerMessage.prototype.popString = function() {

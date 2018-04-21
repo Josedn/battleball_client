@@ -1,7 +1,4 @@
 FurnitureImager.LOCAL_RESOURCES_URL = "/web-gallery/hof_furni/";
-FurnitureImager.INTERNAL_DRAWING_OFFSET_X = -132;
-FurnitureImager.INTERNAL_DRAWING_OFFSET_Y = -116;
-FurnitureImager.INTERNAL_DRAWING_OFFSET_X_FLIP = 264;
 
 function FurniSprite(itemName, size, layer, direction, frame, color, layerData) {
   this.itemName = itemName;
@@ -284,20 +281,6 @@ FurnitureImager.prototype.getFurnitureSpriteKey = function(itemId, direction, st
 };
 
 FurnitureImager.prototype.generateRoomItem = function(itemId, direction, state, frame, size, key) {
-  let tempCanvas = document.createElement('canvas');
-  let tempCtx = tempCanvas.getContext('2d');
-  tempCanvas.width = 350;
-  tempCanvas.height = 350;
-
-  let tempCanvasAdd = document.createElement('canvas');
-  let tempCtxAdd = tempCanvasAdd.getContext('2d');
-  tempCanvasAdd.width = 350;
-  tempCanvasAdd.height = 350;
-  tempCtxAdd.globalCompositeOperation = "lighter";
-
-  //tempCtx.fillStyle = "#ffffff";
-  //tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-
   let itemName = this.getRoomItemName(itemId);
   let colorId = 0;
   if (itemName.includes("*")) {
@@ -365,20 +348,59 @@ FurnitureImager.prototype.generateRoomItem = function(itemId, direction, state, 
       }
 
       Promise.all(chunksPromises).then(() => {
+        let lefterX = 1000;
+        let lefterFlippedX = 1000;
+        let righterX = 0;
+        let upperY = 1000;
+        let lowerY = 0;
         for (chunk of chunks) {
           if (chunk.resource != null) {
-            let posX = -FurnitureImager.INTERNAL_DRAWING_OFFSET_X - parseInt(chunk.asset.x);
-            let posY = -FurnitureImager.INTERNAL_DRAWING_OFFSET_Y - parseInt(chunk.asset.y);
+            let posX = -parseInt(chunk.asset.x);
+            let posY = -parseInt(chunk.asset.y);
             let img = chunk.resource;
-            if (tempCanvas.width < posX + img.width) {
-              tempCanvas.width = posX + img.width;
+            if (chunk.asset.flipH != null && chunk.asset.flipH == "1") {
+              let flippedPosX = parseInt(chunk.asset.x) - img.width;
+              if (lefterFlippedX > flippedPosX) {
+                lefterFlippedX = flippedPosX;
+              }
             }
-            if (tempCanvas.height < posY + img.height) {
-              tempCanvas.height = posY + img.height;
+            if (lefterX > posX) {
+              lefterX = posX;
             }
+            if (upperY > posY) {
+              upperY = posY;
+            }
+            if (righterX < posX + img.width) {
+              righterX = posX + img.width;
+            }
+            if (lowerY < posY + img.height) {
+              lowerY = posY + img.height;
+            }
+          }
+        }
+
+        let tempCanvas = document.createElement('canvas');
+        let tempCtx = tempCanvas.getContext('2d');
+
+        let tempCanvasAdd = document.createElement('canvas');
+        let tempCtxAdd = tempCanvasAdd.getContext('2d');
+
+        tempCanvas.width = righterX - lefterX;
+        tempCanvas.height = lowerY - upperY;
+        tempCanvasAdd.width = righterX - lefterX;
+        tempCanvasAdd.height = lowerY - upperY;
+        tempCtxAdd.globalCompositeOperation = "lighter";
+
+        let useAdd = false;
+
+        for (chunk of chunks) {
+          if (chunk.resource != null) {
+            let posX = -lefterX - parseInt(chunk.asset.x);
+            let posY = -upperY - parseInt(chunk.asset.y);
+            let img = chunk.resource;
             if (chunk.asset.flipH != null && chunk.asset.flipH == "1") {
               img = this.flipSprite(img);
-              posX = -(posX + img.width - FurnitureImager.INTERNAL_DRAWING_OFFSET_X_FLIP);
+              posX = parseInt(chunk.asset.x) - img.width - lefterFlippedX;
             }
             if (chunk.layerData.alpha != null) {
               img = this.tintSprite(img, "ffffff", chunk.layerData.alpha);
@@ -387,7 +409,8 @@ FurnitureImager.prototype.generateRoomItem = function(itemId, direction, state, 
               img = this.tintSprite(img, chunk.color, 255);
             }
             if (chunk.layerData.ink != null && chunk.layerData.ink == "ADD") {
-              //tempCtx.globalCompositeOperation = "lighter";
+              useAdd = true;
+              //tempCtxAdd.globalCompositeOperation = "lighter";
               tempCtxAdd.drawImage(img, posX, posY);
             } else {
               //tempCtx.globalCompositeOperation = "source-over";
@@ -397,7 +420,9 @@ FurnitureImager.prototype.generateRoomItem = function(itemId, direction, state, 
         }
 
         this.bases[itemId].sprites[key] = tempCanvas;
-        this.bases[itemId].sprites[key + "_add"] = tempCanvasAdd;
+        if (useAdd) {
+          this.bases[itemId].sprites[key + "_add"] = tempCanvasAdd;
+        }
         resolve(tempCanvas);
       });
 

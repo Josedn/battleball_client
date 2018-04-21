@@ -42,6 +42,7 @@ function Room(cols, rows, doorX, doorY, heightmap, game) {
   this.ready = false;
   this.selectedScreenX = 0;
   this.selectedScreenY = 0;
+  this.selectedPixel = [0, 0, 0];
   this.mouseOverPlayer = null;
   this.selectedPlayer = null;
   this.players = {};
@@ -98,7 +99,6 @@ Room.prototype.setFurniState = function(itemId, state) {
 };
 
 Room.prototype.setFurni = function(id, x, y, z, rot, baseId, state) {
-  console.log("BaseId: " + baseId);
   if (this.game.furnitureImager.isValidId(baseId)) {
     var furni = this.getFurni(id);
     if (furni == null) {
@@ -274,7 +274,8 @@ Room.prototype.drawFurniture = function() {
   Object.keys(this.furniture).forEach(key => {
     if (this.furniture[key] != null) {
       if (this.furniture[key].ready) {
-        this.drawQueue.queue(new IsometricDrawableDualSpriteAdditive(this.furniture[key].currentSprite(), this.furniture[key].currentSpriteAdd(), this.furniture[key].currentSilhouette(), this.furniture[key].x, this.furniture[key].y, this.furniture[key].z, Furni.DRAWING_OFFSET, Furni.DRAWING_OFFSET, DrawableSprite.PRIORITY_FURNI));
+        let img = this.furniture[key].currentSprite();
+        this.drawQueue.queue(new IsometricDrawableDualSpriteAdditive(img, this.furniture[key].currentSpriteAdd(), this.furniture[key].currentSilhouette(), this.furniture[key].x, this.furniture[key].y, this.furniture[key].z, -img.width/2, -img.height/2, DrawableSprite.PRIORITY_FURNI));
       } else {
         this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage('furni_placeholder'), null, this.furniture[key].x, this.furniture[key].y, this.furniture[key].z, -2, -33, DrawableSprite.PRIORITY_FURNI));
       }
@@ -348,6 +349,7 @@ Room.prototype.draw = function() {
     }
     //}
   }
+  ctx.globalCompositeOperation = "source-over";
   var chatSprites = this.chatManager.getDrawableSprites();
   chatSprites.forEach(chatSprite => {
     ctx.drawImage(chatSprite.sprite, chatSprite.getScreenX() + this.camera.x, chatSprite.getScreenY() + this.camera.y);
@@ -387,8 +389,7 @@ Room.prototype.onSelectFurni = function(furni) {
 };
 
 Room.prototype.trySelectPlayer = function(x, y) {
-  var p = this.game.auxCtx.getImageData(x, y, 1, 1).data;
-  var selectedPlayer = this.getPlayerFromSelectId(Sprites.rgb2int(p[0], p[1], p[2]));
+  var selectedPlayer = this.getPlayerFromSelectId(Sprites.rgb2int(this.selectedPixel[0], this.selectedPixel[1], this.selectedPixel[2]));
   if (selectedPlayer != null) {
     return selectedPlayer;
   }
@@ -396,8 +397,7 @@ Room.prototype.trySelectPlayer = function(x, y) {
 };
 
 Room.prototype.trySelectFurni = function(x, y) {
-  var p = this.game.auxCtx.getImageData(x, y, 1, 1).data;
-  var selectedFurni = this.getFurniFromSelectId(Sprites.rgb2int(p[0], p[1], p[2]));
+  var selectedFurni = this.getFurniFromSelectId(Sprites.rgb2int(this.selectedPixel[0], this.selectedPixel[1], this.selectedPixel[2]));
   if (selectedFurni != null) {
     return selectedFurni;
   }
@@ -447,16 +447,18 @@ Room.prototype.onMouseDoubleClick = function(x, y) {
 Room.prototype.onMouseMove = function(x, y, isDrag) {
   if (isDrag) //Move camera
   {
-    var diffX = Math.round(this.selectedScreenX - x);
+    var diffX = Math.round( this.selectedScreenX - x);
     var diffY = Math.round(this.selectedScreenY - y);
     this.camera.x -= diffX;
     this.camera.y -= diffY;
+  } else {
+    this.selectedPixel = this.game.auxCtx.getImageData(x, y, 1, 1).data;
+    new Promise((resolve, reject) => {
+      this.mouseOverPlayer = this.trySelectPlayer(this.selectedScreenX, this.selectedScreenY);
+    });
   }
-
   this.selectedScreenX = Math.round(x);
   this.selectedScreenY = Math.round(y);
-
-  this.mouseOverPlayer = this.trySelectPlayer(this.selectedScreenX, this.selectedScreenY);
 };
 
 Room.prototype.onTouchStart = function(x, y) {

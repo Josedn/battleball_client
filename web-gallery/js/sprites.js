@@ -283,7 +283,7 @@ IsometricDrawableSprite.prototype.getScreenY = function() {
 };
 
 IsometricDrawableSprite.prototype.getComparableItem = function() {
-  return (this.mapX + this.mapY) * (Game.TILE_H / 2);
+  return (this.mapX + this.mapY) * (Game.TILE_H / 2) + this.mapZ;
 };
 
 function IsometricDrawableDualSpriteAdditive(sprite, additiveSprite, selectableSprite, mapX, mapY, mapZ, offsetX, offsetY, priority) {
@@ -306,5 +306,5 @@ IsometricDrawableDualSpriteAdditive.prototype.getScreenY = function() {
 };
 
 IsometricDrawableDualSpriteAdditive.prototype.getComparableItem = function() {
-  return (this.mapX + this.mapY) * (Game.TILE_H / 2);
+  return (this.mapX + this.mapY) * (Game.TILE_H / 2) + this.mapZ;
 };

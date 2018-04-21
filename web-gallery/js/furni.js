@@ -1,4 +1,5 @@
-Furni.DRAWING_OFFSET = -100;
+Furni.DRAWING_OFFSET_X = -32;
+Furni.DRAWING_OFFSET_Y = -16;
 Furni.FURNIDATA_URL = "./furnidata.json";
 
 function Furni(id, x, y, z, rot, baseId, state) {

@@ -392,6 +392,7 @@ FurnitureImager.prototype.generateRoomItem = function(itemId, direction, state, 
         tempCtxAdd.globalCompositeOperation = "lighter";
 
         let useAdd = false;
+        let useFlipX = false;
 
         for (chunk of chunks) {
           if (chunk.resource != null) {
@@ -401,6 +402,7 @@ FurnitureImager.prototype.generateRoomItem = function(itemId, direction, state, 
             if (chunk.asset.flipH != null && chunk.asset.flipH == "1") {
               img = this.flipSprite(img);
               posX = parseInt(chunk.asset.x) - img.width - lefterFlippedX;
+              useFlipX = true;
             }
             if (chunk.layerData.alpha != null) {
               img = this.tintSprite(img, "ffffff", chunk.layerData.alpha);
@@ -418,10 +420,13 @@ FurnitureImager.prototype.generateRoomItem = function(itemId, direction, state, 
             }
           }
         }
+        if (useFlipX) {
+          lefterX = lefterFlippedX;
+        }
 
-        this.bases[itemId].sprites[key] = tempCanvas;
+        this.bases[itemId].sprites[key] = { sprite : tempCanvas, offsetX: lefterX, offsetY: upperY };
         if (useAdd) {
-          this.bases[itemId].sprites[key + "_add"] = tempCanvasAdd;
+          this.bases[itemId].sprites[key].additiveSprite = tempCanvasAdd;
         }
         resolve(tempCanvas);
       });

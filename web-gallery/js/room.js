@@ -274,8 +274,9 @@ Room.prototype.drawFurniture = function() {
   Object.keys(this.furniture).forEach(key => {
     if (this.furniture[key] != null) {
       if (this.furniture[key].ready) {
-        let img = this.furniture[key].currentSprite();
-        this.drawQueue.queue(new IsometricDrawableDualSpriteAdditive(img, this.furniture[key].currentSpriteAdd(), this.furniture[key].currentSilhouette(), this.furniture[key].x, this.furniture[key].y, this.furniture[key].z, -img.width/2, -img.height/2, DrawableSprite.PRIORITY_FURNI));
+        let baseSprite = this.furniture[key].baseItem.sprites[this.furniture[key].getCurrentFurniSpriteKey()];
+        this.drawQueue.queue(new IsometricDrawableDualSpriteAdditive(baseSprite.sprite, baseSprite.additiveSprite, this.furniture[key].currentSilhouette(), this.furniture[key].x, this.furniture[key].y, this.furniture[key].z, baseSprite.offsetX +32, baseSprite.offsetY +16, DrawableSprite.PRIORITY_FURNI));
+        //this.drawQueue.queue(new IsometricDrawableDualSpriteAdditive(baseSprite.sprite, null, null, this.furniture[key].x, this.furniture[key].y, this.furniture[key].z, baseSprite.offsetX +32, baseSprite.offsetY +16, DrawableSprite.PRIORITY_FURNI));
       } else {
         this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage('furni_placeholder'), null, this.furniture[key].x, this.furniture[key].y, this.furniture[key].z, -2, -33, DrawableSprite.PRIORITY_FURNI));
       }

@@ -21,7 +21,7 @@ Furni.prototype.loadSprites = function(furnitureImager) {
   allSpritesPromise.then((base) => {
     this.baseItem = base;
     for (spriteId in this.baseItem.sprites) {
-      this.sprites.loadLocalImage(spriteId, this.baseItem.sprites[spriteId]);
+      this.sprites.loadLocalImage(spriteId, this.baseItem.sprites[spriteId].sprite);
     }
   });
   return [allSpritesPromise];

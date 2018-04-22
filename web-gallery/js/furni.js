@@ -80,6 +80,10 @@ Furni.prototype.tick = function(delta) {
   }
 };
 
+Furni.prototype.getCurrentBaseSprite = function() {
+  return this.baseItem.sprites[this.getCurrentFurniSpriteKey()];
+};
+
 Furni.prototype.getCurrentFurniSpriteKey = function() {
   return this.sprites.getFurnitureSpriteKey(this.baseItem.itemId, this.rot, this.state, this.genericFrame);
 };

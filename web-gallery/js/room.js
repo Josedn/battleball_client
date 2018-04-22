@@ -72,6 +72,10 @@ Room.prototype.getPlayerFromSelectId = function(id) {
 };
 
 Room.prototype.getFurni = function(id) {
+  return this.getRoomItem(id) || this.getWallItem(id);
+};
+
+Room.prototype.getRoomItem = function(id) {
   return (id in this.roomItems) ? this.roomItems[id] : null;
 };
 
@@ -105,7 +109,7 @@ Room.prototype.setFurniState = function(itemId, state) {
 
 Room.prototype.setRoomItem = function(id, x, y, z, rot, baseId, state) {
   if (this.game.furnitureImager.isValidIdRoom(baseId)) {
-    var furni = this.getFurni(id);
+    var furni = this.getRoomItem(id);
     if (furni == null) {
       var f = new Furni(Furni.ROOMITEM, id, x, y, z, rot, baseId, state);
       this.prepareQueue.push(f.prepare.bind(f), this.game.furnitureImager);
@@ -116,7 +120,6 @@ Room.prototype.setRoomItem = function(id, x, y, z, rot, baseId, state) {
       furni.updateParams(x, y, z, rot, baseId, state);
     }
   }
-  this.setWallItem(3213, -180, 40, 2, 4003, 0);
 };
 
 Room.prototype.setWallItem = function(id, x, y, rot, baseId, state) {
@@ -300,8 +303,10 @@ Room.prototype.drawRoomItems = function() {
   Object.keys(this.roomItems).forEach(key => {
     if (this.roomItems[key] != null) {
       if (this.roomItems[key].ready) {
-        let baseSprite = this.roomItems[key].baseItem.sprites[this.roomItems[key].getCurrentFurniSpriteKey()];
-        this.drawQueue.queue(new IsometricDrawableDualSpriteAdditive(baseSprite.sprite, baseSprite.additiveSprite, this.roomItems[key].currentSilhouette(), this.roomItems[key].x, this.roomItems[key].y, this.roomItems[key].z, baseSprite.offsetX +32, baseSprite.offsetY +16, DrawableSprite.PRIORITY_ROOM_ITEM));
+        let baseSprite = this.roomItems[key].getCurrentBaseSprite();
+        let drawableSprite = new IsometricDrawableSprite(baseSprite.sprite, this.roomItems[key].currentSilhouette(), this.roomItems[key].x, this.roomItems[key].y, this.roomItems[key].z, baseSprite.offsetX +32, baseSprite.offsetY +16, DrawableSprite.PRIORITY_ROOM_ITEM);
+        drawableSprite.additiveSprite = baseSprite.additiveSprite;
+        this.drawQueue.queue(drawableSprite);
       } else {
         this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage('furni_placeholder'), null, this.roomItems[key].x, this.roomItems[key].y, this.roomItems[key].z, -2, -33, DrawableSprite.PRIORITY_ROOM_ITEM));
       }
@@ -313,10 +318,12 @@ Room.prototype.drawWallItems = function() {
   Object.keys(this.wallItems).forEach(key => {
     if (this.wallItems[key] != null) {
       if (this.wallItems[key].ready) {
-        let baseSprite = this.wallItems[key].baseItem.sprites[this.wallItems[key].getCurrentFurniSpriteKey()];
-        this.drawQueue.queue(new DrawableSprite(baseSprite.sprite, null, this.wallItems[key].x, this.wallItems[key].y, DrawableSprite.PRIORITY_WALL_ITEM));
+        let baseSprite = this.wallItems[key].getCurrentBaseSprite();
+        let drawableSprite = new DrawableSprite(baseSprite.sprite, this.wallItems[key].currentSilhouette(), this.wallItems[key].x + baseSprite.offsetX, this.wallItems[key].y + baseSprite.offsetY, DrawableSprite.PRIORITY_WALL_ITEM);
+        drawableSprite.additiveSprite = baseSprite.additiveSprite;
+        this.drawQueue.queue(drawableSprite);
       } else {
-        this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('furni_placeholder'), null, this.wallItems[key].x, this.wallItems[key].y, DrawableSprite.PRIORITY_WALL_ITEM));
+        this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('furni_placeholder'), null, this.wallItems[key].x - 32, this.wallItems[key].y - 16, DrawableSprite.PRIORITY_WALL_ITEM));
       }
     }
   });

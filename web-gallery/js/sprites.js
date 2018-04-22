@@ -286,26 +286,3 @@ IsometricDrawableSprite.prototype.getScreenY = function() {
 IsometricDrawableSprite.prototype.getComparableItem = function() {
   return (this.mapX + this.mapY) * (Game.TILE_H / 2) + this.mapZ;
 };
-
-function IsometricDrawableDualSpriteAdditive(sprite, additiveSprite, selectableSprite, mapX, mapY, mapZ, offsetX, offsetY, priority) {
-  DrawableSprite.call(this, sprite, selectableSprite, 0, 0, priority);
-  this.additiveSprite = additiveSprite;
-  this.mapX = mapX;
-  this.mapY = mapY;
-  this.mapZ = mapZ;
-  this.offsetX = offsetX;
-  this.offsetY = offsetY;
-  this.additive = true;
-}
-
-IsometricDrawableDualSpriteAdditive.prototype.getScreenX = function() {
-  return (this.mapX - this.mapY) * (Game.TILE_W / 2) + this.offsetX;
-};
-
-IsometricDrawableDualSpriteAdditive.prototype.getScreenY = function() {
-  return (this.mapX + this.mapY) * (Game.TILE_H / 2) + this.offsetY - (this.mapZ * Game.TILE_H);
-};
-
-IsometricDrawableDualSpriteAdditive.prototype.getComparableItem = function() {
-  return (this.mapX + this.mapY) * (Game.TILE_H / 2) + this.mapZ;
-};

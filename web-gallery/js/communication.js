@@ -5,7 +5,7 @@ Communication.OUTGOING_REQUEST_CHAT = 9;
 Communication.OUTGOING_REQUEST_LOOK_AT = 12;
 Communication.OUTGOING_REQUEST_WAVE = 13;
 Communication.OUTGOING_REQUEST_ROOM_DATA = 15;
-Communication.OUTGOING_REQUEST_FURNI_INTERACT = 18;
+Communication.OUTGOING_REQUEST_ITEM_INTERACT = 18;
 
 Communication.INCOMING_LOGIN_OK = 3;
 Communication.INCOMING_MAP_DATA = 4;
@@ -14,9 +14,10 @@ Communication.INCOMING_PLAYER_MOVEMENT = 8;
 Communication.INCOMING_CHAT = 10;
 Communication.INCOMING_PLAYER_REMOVE = 11;
 Communication.INCOMING_PLAYER_WAVE = 14;
-Communication.INCOMING_FURNI_DATA = 16;
-Communication.INCOMING_FURNI_REMOVE = 17;
-Communication.INCOMING_FURNI_STATE = 19;
+Communication.INCOMING_ROOM_ITEM_DATA = 16;
+Communication.INCOMING_ITEM_REMOVE = 17;
+Communication.INCOMING_ITEM_STATE = 19;
+Communication.INCOMING_WALL_ITEM_DATA = 20;
 
 function Communication(game) {
   this.game = game;
@@ -64,7 +65,7 @@ Communication.prototype.requestWave = function() {
 };
 
 Communication.prototype.requestInteractFurni = function(itemId) {
-  var message = new ClientMessage(Communication.OUTGOING_REQUEST_FURNI_INTERACT);
+  var message = new ClientMessage(Communication.OUTGOING_REQUEST_ITEM_INTERACT);
   message.appendInt(itemId);
   this.game.connection.sendMessage(message);
 };
@@ -94,15 +95,17 @@ Communication.prototype.handleMessage = function(data) {
     case Communication.INCOMING_PLAYER_WAVE:
       this.handleWave(request);
       break;
-    case Communication.INCOMING_FURNI_DATA:
-      this.handleFurni(request);
+    case Communication.INCOMING_ROOM_ITEM_DATA:
+      this.handleRoomItems(request);
       break;
-    case Communication.INCOMING_FURNI_REMOVE:
+    case Communication.INCOMING_ITEM_REMOVE:
       this.handleRemoveFurni(request);
       break;
-    case Communication.INCOMING_FURNI_STATE:
+    case Communication.INCOMING_ITEM_STATE:
       this.handleFurniState(request);
       break;
+    case Communication.INCOMING_WALL_ITEM_DATA:
+      this.handleWallItems(request);
   }
 };
 
@@ -147,9 +150,9 @@ Communication.prototype.handlePlayers = function(request) {
   }
 };
 
-Communication.prototype.handleFurni = function(request) {
+Communication.prototype.handleRoomItems = function(request) {
   var count = request.popInt();
-  updateStatus("Received (" + count + ") furniture");
+  updateStatus("Received (" + count + ") room items");
   for (var i = 0; i < count; i++) {
     var id = request.popInt();
     var x = request.popInt();
@@ -161,6 +164,23 @@ Communication.prototype.handleFurni = function(request) {
 
     if (this.game.currentRoom != null) {
       this.game.currentRoom.setRoomItem(id, x, y, z, rot, baseId, state);
+    }
+  }
+};
+
+Communication.prototype.handleWallItems = function(request) {
+  var count = request.popInt();
+  updateStatus("Received (" + count + ") wall items");
+  for (var i = 0; i < count; i++) {
+    var id = request.popInt();
+    var x = request.popInt();
+    var y  = request.popInt();
+    var rot = request.popInt();
+    var baseId = request.popInt();
+    var state = request.popInt();
+
+    if (this.game.currentRoom != null) {
+      this.game.currentRoom.setWallItem(id, x, y, rot, baseId, state);
     }
   }
 };

@@ -255,7 +255,7 @@ FurnitureImager.prototype.generateAll = function(type, itemId, size) {
 
   let offsetPromise = null;
 
-  if (this.offsets[type][itemId] == null) {
+  if (this.offsets[type][itemName] == null) {
     this.offsets[type][itemName] = { 'promise': this.downloadOffsetAsync(type, itemName), 'data': {} };
     offsetPromise = this.offsets[type][itemName].promise;
   } else if (this.offsets[type][itemName].data != {}) {

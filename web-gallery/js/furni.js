@@ -1,8 +1,11 @@
 Furni.DRAWING_OFFSET_X = -32;
 Furni.DRAWING_OFFSET_Y = -16;
 Furni.FURNIDATA_URL = "./furnidata.json";
+Furni.ROOMITEM = 0;
+Furni.WALLITEM = 1;
 
-function Furni(id, x, y, z, rot, baseId, state) {
+function Furni(type, id, x, y, z, rot, baseId, state) {
+  this.type = type;
   this.id = id;
   this.x = x;
   this.y = y;
@@ -17,7 +20,12 @@ function Furni(id, x, y, z, rot, baseId, state) {
 }
 
 Furni.prototype.loadSprites = function(furnitureImager) {
-  let allSpritesPromise = furnitureImager.generateAll(this.baseId, 64);
+  let allSpritesPromise = null;
+  if (this.type == Furni.ROOMITEM) {
+    allSpritesPromise = furnitureImager.generateRoomItem(this.baseId, 64);
+  } else {
+    allSpritesPromise = furnitureImager.generateWallItem(this.baseId, 64);
+  }
   allSpritesPromise.then((base) => {
     this.baseItem = base;
     for (spriteId in this.baseItem.sprites) {

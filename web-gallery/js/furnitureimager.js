@@ -52,8 +52,8 @@ FurniSprite.prototype.buildResourceName = function() {
 
 function FurnitureImager() {
   this.ready = false;
-  this.bases = {};
-  this.offsets = {};
+  this.bases = { roomitem: {}, wallitem: {} };
+  this.offsets = { roomitem: {}, wallitem: {} };
 };
 
 FurnitureImager.prototype.initialize = function() {
@@ -79,7 +79,7 @@ FurnitureImager.prototype.downloadJsonAsync = function(key, url) {
   }.bind(this));
 };
 
-FurnitureImager.prototype.downloadOffsetAsync = function(uniqueName) {
+FurnitureImager.prototype.downloadOffsetAsync = function(type, uniqueName) {
   return new Promise(function (resolve, reject) {
     let r = new XMLHttpRequest();
     r.open("GET", FurnitureImager.LOCAL_RESOURCES_URL + uniqueName + "/furni.json", true);
@@ -90,7 +90,7 @@ FurnitureImager.prototype.downloadOffsetAsync = function(uniqueName) {
         }
         return;
       }
-      this.offsets[uniqueName].data = JSON.parse(r.responseText);
+      this.offsets[type][uniqueName].data = JSON.parse(r.responseText);
       resolve();
     }.bind(this);
     r.send();
@@ -110,8 +110,27 @@ FurnitureImager.prototype.getRoomItemName = function(itemId) {
   return null;
 };
 
-FurnitureImager.prototype.isValidId = function(itemId) {
+FurnitureImager.prototype.getWallItemName = function(itemId) {
+  if (this.furnidata.wallitemtypes[itemId] != null){
+    return this.furnidata.wallitemtypes[itemId].classname;
+  }
+  return null;
+};
+
+FurnitureImager.prototype.getItemName = function(type, itemId) {
+  if (type == "roomitem") {
+    return this.getRoomItemName(itemId);
+  } else {
+    return this.getWallItemName(itemId);
+  }
+};
+
+FurnitureImager.prototype.isValidIdRoom = function(itemId) {
   return this.furnidata.roomitemtypes[itemId] != null;
+};
+
+FurnitureImager.prototype.isValidIdWall = function(itemId) {
+  return this.furnidata.wallitemtypes[itemId] != null;
 };
 
 FurnitureImager.prototype.flipSprite = function(img) {
@@ -214,11 +233,19 @@ function FurniBase(itemId, itemName, size) {
   this.sprites = {};
 };
 
-FurnitureImager.prototype.generateAll = function(itemId, size) {
-  let itemName = this.getRoomItemName(itemId);
+FurnitureImager.prototype.generateWallItem = function(itemId, size) {
+  return this.generateAll("wallitem", itemId, size);
+};
+
+FurnitureImager.prototype.generateRoomItem = function(itemId, size) {
+  return this.generateAll("roomitem", itemId, size);
+};
+
+FurnitureImager.prototype.generateAll = function(type, itemId, size) {
+  let itemName = this.getItemName(type, itemId);
   let colorId = 0;
 
-  this.bases[itemId] = new FurniBase(itemId, itemName, size);
+  this.bases[type][itemId] = new FurniBase(itemId, itemName, size);
 
   if (itemName.includes("*")) {
     const longFurniName = itemName.split("*");
@@ -228,18 +255,18 @@ FurnitureImager.prototype.generateAll = function(itemId, size) {
 
   let offsetPromise = null;
 
-  if (this.offsets[itemId] == null) {
-    this.offsets[itemName] = { 'promise': this.downloadOffsetAsync(itemName), 'data': {} };
-    offsetPromise = this.offsets[itemName].promise;
-  } else if (this.offsets[itemName].data != {}) {
-    offsetPromise = this.offsets[itemName].promise;
+  if (this.offsets[type][itemId] == null) {
+    this.offsets[type][itemName] = { 'promise': this.downloadOffsetAsync(type, itemName), 'data': {} };
+    offsetPromise = this.offsets[type][itemName].promise;
+  } else if (this.offsets[type][itemName].data != {}) {
+    offsetPromise = this.offsets[type][itemName].promise;
   }
 
   return new Promise((resolve, reject) => {
     offsetPromise.catch(() => {
       reject("Error downloading offset");
     }).then(() => {
-      const visualization = this.offsets[itemName].data.visualization[64];
+      const visualization = this.offsets[type][itemName].data.visualization[64];
       let states = { "0": 1 };
       let frames = 0;
       if (visualization.animations != null) {
@@ -255,14 +282,14 @@ FurnitureImager.prototype.generateAll = function(itemId, size) {
           states[stateId] = count;
         }
       }
-      this.bases[itemId].states = states;
+      this.bases[type][itemId].states = states;
       const promises = [];
 
       for (direction of visualization.directions) {
         for (stateId in states) {
           const frames = states[stateId];
           for (let frame = 0; frame < frames; frame++) {
-            promises.push(this.generateRoomItem(itemId, direction, stateId, frame, size, this.getFurnitureSpriteKey(itemId, direction, stateId, frame, size)));
+            promises.push(this.generateItem(type, itemId, direction, stateId, frame, size, this.getFurnitureSpriteKey(itemId, direction, stateId, frame, size)));
           }
         }
       }
@@ -270,7 +297,7 @@ FurnitureImager.prototype.generateAll = function(itemId, size) {
       Promise.all(promises).catch(() => {
         reject();
       } ).then(() => {
-        resolve(this.bases[itemId]);
+        resolve(this.bases[type][itemId]);
       })
     });
   });
@@ -280,8 +307,8 @@ FurnitureImager.prototype.getFurnitureSpriteKey = function(itemId, direction, st
   return itemId + "_" + size + "_" + direction + "_" + stateId + "_" + frame;
 };
 
-FurnitureImager.prototype.generateRoomItem = function(itemId, direction, state, frame, size, key) {
-  let itemName = this.getRoomItemName(itemId);
+FurnitureImager.prototype.generateItem = function(type, itemId, direction, state, frame, size, key) {
+  let itemName = this.getItemName(type, itemId);
   let colorId = 0;
   if (itemName.includes("*")) {
     const longFurniName = itemName.split("*");
@@ -291,11 +318,11 @@ FurnitureImager.prototype.generateRoomItem = function(itemId, direction, state, 
 
   let offsetPromise = null;
 
-  if (this.offsets[itemName] == null) {
-    this.offsets[itemName] = { 'promise': this.downloadOffsetAsync(itemName), 'data': {} };
-    offsetPromise = this.offsets[itemName].promise;
-  } else if (this.offsets[itemName].data != {}) {
-    offsetPromise = this.offsets[itemName].promise;
+  if (this.offsets[type][itemName] == null) {
+    this.offsets[type][itemName] = { 'promise': this.downloadOffsetAsync(itemName), 'data': {} };
+    offsetPromise = this.offsets[type][itemName].promise;
+  } else if (this.offsets[type][itemName].data != {}) {
+    offsetPromise = this.offsets[type][itemName].promise;
   }
 
   return new Promise((resolve, reject) => {
@@ -303,8 +330,8 @@ FurnitureImager.prototype.generateRoomItem = function(itemId, direction, state, 
       let chunksPromises = [];
       let chunks = [];
 
-      const visualization = this.offsets[itemName].data.visualization[size];
-      const assets = this.offsets[itemName].data.assets;
+      const visualization = this.offsets[type][itemName].data.visualization[size];
+      const assets = this.offsets[type][itemName].data.assets;
       for (let i = -1; i < visualization.layerCount; i++) {
         let color = null;
         let spriteFrame = 0;
@@ -424,9 +451,9 @@ FurnitureImager.prototype.generateRoomItem = function(itemId, direction, state, 
           lefterX = lefterFlippedX;
         }
 
-        this.bases[itemId].sprites[key] = { sprite : tempCanvas, offsetX: lefterX, offsetY: upperY };
+        this.bases[type][itemId].sprites[key] = { sprite : tempCanvas, offsetX: lefterX, offsetY: upperY };
         if (useAdd) {
-          this.bases[itemId].sprites[key].additiveSprite = tempCanvasAdd;
+          this.bases[type][itemId].sprites[key].additiveSprite = tempCanvasAdd;
         }
         resolve(tempCanvas);
       });

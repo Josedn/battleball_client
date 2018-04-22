@@ -47,7 +47,8 @@ function Room(cols, rows, doorX, doorY, heightmap, game) {
   this.selectedPlayer = null;
   this.players = {};
   this.selectableSprites = {};
-  this.furniture = {};
+  this.roomItems = {};
+  this.wallItems = {};
   this.sprites = new Sprites();
   this.camera = new Camera(this);
   this.chatManager = new ChatManager(this);
@@ -71,7 +72,11 @@ Room.prototype.getPlayerFromSelectId = function(id) {
 };
 
 Room.prototype.getFurni = function(id) {
-  return (id in this.furniture) ? this.furniture[id] : null;
+  return (id in this.roomItems) ? this.roomItems[id] : null;
+};
+
+Room.prototype.getWallItem = function(id) {
+  return (id in this.wallItems) ? this.wallItems[id] : null;
 };
 
 Room.prototype.getFurniFromSelectId = function(id) {
@@ -98,27 +103,48 @@ Room.prototype.setFurniState = function(itemId, state) {
   }
 };
 
-Room.prototype.setFurni = function(id, x, y, z, rot, baseId, state) {
-  if (this.game.furnitureImager.isValidId(baseId)) {
+Room.prototype.setRoomItem = function(id, x, y, z, rot, baseId, state) {
+  if (this.game.furnitureImager.isValidIdRoom(baseId)) {
     var furni = this.getFurni(id);
     if (furni == null) {
-      var f = new Furni(id, x, y, z, rot, baseId, state);
+      var f = new Furni(Furni.ROOMITEM, id, x, y, z, rot, baseId, state);
       this.prepareQueue.push(f.prepare.bind(f), this.game.furnitureImager);
       //f.prepare(this.game.furnitureImager);
-      this.furniture[id] = f;
+      this.roomItems[id] = f;
       this.selectableSprites[f.sprites.colorId] = f;
     } else {
       furni.updateParams(x, y, z, rot, baseId, state);
     }
   }
+  this.setWallItem(3213, -180, 40, 2, 4003, 0);
+};
+
+Room.prototype.setWallItem = function(id, x, y, rot, baseId, state) {
+  if (this.game.furnitureImager.isValidIdWall(baseId)) {
+    var furni = this.getWallItem(id);
+    if (furni == null) {
+      var f = new Furni(Furni.WALLITEM, id, x, y, 0, rot, baseId, state);
+      this.prepareQueue.push(f.prepare.bind(f), this.game.furnitureImager);
+      this.wallItems[id] = f;
+      this.selectableSprites[f.sprites.colorId] = f;
+    } else {
+      //TODO: updateParams
+    }
+  }
 };
 
 Room.prototype.removeFurni = function(id) {
-  if (id in this.furniture) {
-    if (this.furniture[id].sprites.colorId in this.selectableSprites) {
-      delete(this.selectableSprites[this.furniture[id].sprites.colorId]);
+  if (id in this.roomItems) {
+    if (this.roomItems[id].sprites.colorId in this.selectableSprites) {
+      delete(this.selectableSprites[this.roomItems[id].sprites.colorId]);
     }
-    delete(this.furniture[id]);
+    delete(this.roomItems[id]);
+  }
+  if (id in this.wallItems) {
+    if (this.wallItems[id].sprites.colorId in this.selectableSprites) {
+      delete(this.selectableSprites[this.wallItems[id].sprites.colorId]);
+    }
+    delete(this.wallItems[id]);
   }
 };
 
@@ -270,15 +296,27 @@ Room.prototype.drawPlayer = function(player) {
   }
 };
 
-Room.prototype.drawFurniture = function() {
-  Object.keys(this.furniture).forEach(key => {
-    if (this.furniture[key] != null) {
-      if (this.furniture[key].ready) {
-        let baseSprite = this.furniture[key].baseItem.sprites[this.furniture[key].getCurrentFurniSpriteKey()];
-        this.drawQueue.queue(new IsometricDrawableDualSpriteAdditive(baseSprite.sprite, baseSprite.additiveSprite, this.furniture[key].currentSilhouette(), this.furniture[key].x, this.furniture[key].y, this.furniture[key].z, baseSprite.offsetX +32, baseSprite.offsetY +16, DrawableSprite.PRIORITY_FURNI));
-        //this.drawQueue.queue(new IsometricDrawableDualSpriteAdditive(baseSprite.sprite, null, null, this.furniture[key].x, this.furniture[key].y, this.furniture[key].z, baseSprite.offsetX +32, baseSprite.offsetY +16, DrawableSprite.PRIORITY_FURNI));
+Room.prototype.drawRoomItems = function() {
+  Object.keys(this.roomItems).forEach(key => {
+    if (this.roomItems[key] != null) {
+      if (this.roomItems[key].ready) {
+        let baseSprite = this.roomItems[key].baseItem.sprites[this.roomItems[key].getCurrentFurniSpriteKey()];
+        this.drawQueue.queue(new IsometricDrawableDualSpriteAdditive(baseSprite.sprite, baseSprite.additiveSprite, this.roomItems[key].currentSilhouette(), this.roomItems[key].x, this.roomItems[key].y, this.roomItems[key].z, baseSprite.offsetX +32, baseSprite.offsetY +16, DrawableSprite.PRIORITY_ROOM_ITEM));
       } else {
-        this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage('furni_placeholder'), null, this.furniture[key].x, this.furniture[key].y, this.furniture[key].z, -2, -33, DrawableSprite.PRIORITY_FURNI));
+        this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage('furni_placeholder'), null, this.roomItems[key].x, this.roomItems[key].y, this.roomItems[key].z, -2, -33, DrawableSprite.PRIORITY_ROOM_ITEM));
+      }
+    }
+  });
+};
+
+Room.prototype.drawWallItems = function() {
+  Object.keys(this.wallItems).forEach(key => {
+    if (this.wallItems[key] != null) {
+      if (this.wallItems[key].ready) {
+        let baseSprite = this.wallItems[key].baseItem.sprites[this.wallItems[key].getCurrentFurniSpriteKey()];
+        this.drawQueue.queue(new DrawableSprite(baseSprite.sprite, null, this.wallItems[key].x, this.wallItems[key].y, DrawableSprite.PRIORITY_WALL_ITEM));
+      } else {
+        this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('furni_placeholder'), null, this.wallItems[key].x, this.wallItems[key].y, DrawableSprite.PRIORITY_WALL_ITEM));
       }
     }
   });
@@ -330,7 +368,8 @@ Room.prototype.draw = function() {
   this.drawFloor();
   this.drawPlayers();
   this.drawSelectedTile();
-  this.drawFurniture();
+  this.drawRoomItems();
+  this.drawWallItems();
 
   var ctx = this.game.ctx;
   var auxCtx = this.game.auxCtx;
@@ -365,17 +404,26 @@ Room.prototype.tickPlayers = function(delta) {
   });
 };
 
-Room.prototype.tickFurniture = function(delta) {
-  Object.keys(this.furniture).forEach(key => {
-    if (this.furniture[key] != null && this.furniture[key].ready) {
-      this.furniture[key].tick(delta);
+Room.prototype.tickRoomItems = function(delta) {
+  Object.keys(this.roomItems).forEach(key => {
+    if (this.roomItems[key] != null && this.roomItems[key].ready) {
+      this.roomItems[key].tick(delta);
+    }
+  });
+};
+
+Room.prototype.tickWallItems = function(delta) {
+  Object.keys(this.wallItems).forEach(key => {
+    if (this.wallItems[key] != null && this.wallItems[key].ready) {
+      this.wallItems[key].tick(delta);
     }
   });
 };
 
 Room.prototype.tick = function(delta) {
   this.tickPlayers(delta);
-  this.tickFurniture(delta);
+  this.tickRoomItems(delta);
+  this.tickWallItems(delta);
   this.tickSelectedUserSign();
   this.chatManager.tick(delta);
 };

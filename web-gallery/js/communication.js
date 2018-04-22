@@ -160,7 +160,7 @@ Communication.prototype.handleFurni = function(request) {
     var state = request.popInt();
 
     if (this.game.currentRoom != null) {
-      this.game.currentRoom.setFurni(id, x, y, z, rot, baseId, state);
+      this.game.currentRoom.setRoomItem(id, x, y, z, rot, baseId, state);
     }
   }
 };

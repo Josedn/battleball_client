@@ -9,12 +9,13 @@ DrawableSprite.PRIORITY_DOOR_FLOOR_PLAYER = 4;
 DrawableSprite.PRIORITY_DOOR_WALL = 5;
 DrawableSprite.PRIORITY_WALL = 6;
 DrawableSprite.PRIORITY_FLOOR = 7;
-DrawableSprite.PRIORITY_PLAYER_SHADOW = 8;
-DrawableSprite.PRIORITY_FLOOR_SELECT = 9;
-DrawableSprite.PRIORITY_PLAYER = 10;
-DrawableSprite.PRIORITY_FURNI = 10;
-DrawableSprite.PRIORITY_SIGN = 11;
-DrawableSprite.PRIORITY_CHAT = 12;
+DrawableSprite.PRIORITY_WALL_ITEM = 8;
+DrawableSprite.PRIORITY_PLAYER_SHADOW = 9;
+DrawableSprite.PRIORITY_FLOOR_SELECT = 10;
+DrawableSprite.PRIORITY_PLAYER = 11;
+DrawableSprite.PRIORITY_ROOM_ITEM = 11;
+DrawableSprite.PRIORITY_SIGN = 12;
+DrawableSprite.PRIORITY_CHAT = 13;
 
 Sprites.rgb2int = function(r, g, b) {
   return (r << 16) + (g << 8) + (b);

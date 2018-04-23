@@ -13,17 +13,17 @@
   });
   </script>
   <link rel="stylesheet" type="text/css" href="./web-gallery/css/style.css" />
-  <script src="./web-gallery/js/priority-queue.min.js"></script>
-  <script src="./web-gallery/js/io.js"></script>
-  <script src="./web-gallery/js/communication.js"></script>
-  <script src="./web-gallery/js/sprites.js"></script>
-  <script src="./web-gallery/js/furnitureimager.js"></script>
-  <script src="./web-gallery/js/avatarimager.js"></script>
-  <script src="./web-gallery/js/furni.js"></script>
-  <script src="./web-gallery/js/player.js"></script>
-  <script src="./web-gallery/js/chatmanager.js"></script>
-  <script src="./web-gallery/js/room.js"></script>
-  <script src="./web-gallery/js/game.js"></script>
+  <script src="./web-gallery/js/priority-queue.min.js?<?php echo time(); ?>"></script>
+  <script src="./web-gallery/js/io.js?<?php echo time(); ?>"></script>
+  <script src="./web-gallery/js/communication.js?<?php echo time(); ?>"></script>
+  <script src="./web-gallery/js/sprites.js?<?php echo time(); ?>"></script>
+  <script src="./web-gallery/js/furnitureimager.js?<?php echo time(); ?>"></script>
+  <script src="./web-gallery/js/avatarimager.js?<?php echo time(); ?>"></script>
+  <script src="./web-gallery/js/furni.js?<?php echo time(); ?>"></script>
+  <script src="./web-gallery/js/player.js?<?php echo time(); ?>"></script>
+  <script src="./web-gallery/js/chatmanager.js?<?php echo time(); ?>"></script>
+  <script src="./web-gallery/js/room.js?<?php echo time(); ?>"></script>
+  <script src="./web-gallery/js/game.js?<?php echo time(); ?>"></script>
 
   <link rel="shortcut icon" href="./favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=0.6, minimum-scale=0.6, maximum-scale=0.6, user-scalable=no">

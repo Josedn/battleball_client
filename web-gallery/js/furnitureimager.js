@@ -267,7 +267,7 @@ FurnitureImager.prototype.generateAll = function(type, itemId, size) {
       reject("Error downloading offset");
     }).then(() => {
       const visualization = this.offsets[type][itemName].data.visualization[64];
-      let states = { "0": 1 };
+      let states = { "0": { count: 1 } };
       let frames = 0;
       if (visualization.animations != null) {
         for (stateId in visualization.animations) {
@@ -279,7 +279,11 @@ FurnitureImager.prototype.generateAll = function(type, itemId, size) {
               }
             }
           }
-          states[stateId] = count;
+          states[stateId] = { count };
+          if (visualization.animations[stateId].transitionTo != null) {
+            states[stateId].transitionTo = visualization.animations[stateId].transitionTo;
+            states[states[stateId].transitionTo].transition = stateId;
+          }
         }
       }
       this.bases[type][itemId].states = states;
@@ -287,7 +291,7 @@ FurnitureImager.prototype.generateAll = function(type, itemId, size) {
 
       for (direction in visualization.directions) {
         for (stateId in states) {
-          const frames = states[stateId];
+          const frames = states[stateId].count;
           for (let frame = 0; frame < frames; frame++) {
             promises.push(this.generateItem(type, itemId, direction, stateId, frame, size, this.getFurnitureSpriteKey(itemId, direction, stateId, frame, size)));
           }

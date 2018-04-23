@@ -3,6 +3,7 @@ Furni.DRAWING_OFFSET_Y = -16;
 Furni.FURNIDATA_URL = "./furnidata.json";
 Furni.ROOMITEM = 0;
 Furni.WALLITEM = 1;
+Furni.FRAME_SPEED = 80;
 
 function Furni(type, id, x, y, z, rot, baseId, state) {
   this.type = type;
@@ -12,6 +13,7 @@ function Furni(type, id, x, y, z, rot, baseId, state) {
   this.z = z;
   this.rot = rot;
   this.state = state;
+  this.nextState = -1;
   this.genericFrame = 0;
   this.genericFrameCounter = 0;
   this.baseId = baseId;
@@ -61,20 +63,34 @@ Furni.prototype.updateParams = function(x, y, z, baseId) {
 };
 
 Furni.prototype.setState = function(state) {
+  if (this.baseItem.states[state].transition != null) {
+    this.state = this.baseItem.states[state].transition;
+    this.nextState = state;
+    this.genericFrame = 0;
+  } else {
+    this.setActualState(state);
+  }
+};
+
+Furni.prototype.setActualState = function(state) {
   this.state = state;
+  this.nextState = -1;
   this.genericFrame = 0;
 };
 
 Furni.prototype.nextGenericFrame = function() {
   this.genericFrame++;
-  if (this.genericFrame >= this.baseItem.states[this.state]) {
+  if (this.genericFrame >= this.baseItem.states[this.state].count) {
     this.genericFrame = 0;
+    if (this.nextState != -1) {
+      this.setActualState(this.nextState);
+    }
   }
 };
 
 Furni.prototype.tick = function(delta) {
   this.genericFrameCounter += delta;
-  if (this.genericFrameCounter >= 100) {
+  if (this.genericFrameCounter >= Furni.FRAME_SPEED) {
     this.nextGenericFrame();
     this.genericFrameCounter = 0;
   }

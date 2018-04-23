@@ -48,7 +48,7 @@ Sprites.prototype.loadImage = function (key, src) {
             reject('Could not load image: ' + src);
         };
     }.bind(this));
-
+    img.crossOrigin = "anonymous";
     img.src = src;
     return d;
 };

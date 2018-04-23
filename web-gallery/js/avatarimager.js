@@ -1,4 +1,4 @@
-AvatarImager.LOCAL_RESOURCES_URL = "/web-gallery/resource/";
+AvatarImager.LOCAL_RESOURCES_URL = "//images.bobba.io/resource/";
 
 function AvatarSprite(uniqueName, action, type, isSmall, partId, direction, frame, color) {
   let resDirection = direction;
@@ -66,7 +66,7 @@ AvatarSprite.prototype.downloadAsync = function() {
       reject('Could not load image: ' + img.src);
     }.bind(this);
   }.bind(this));
-
+  img.crossOrigin = "anonymous";
   img.src = AvatarImager.LOCAL_RESOURCES_URL + this.lib + "/" + this.lib + "_" + this.getResourceName() + ".png";
   return d;
 };
@@ -335,7 +335,7 @@ AvatarImager.prototype.generateGeneric = function(avatarImage, canvasCallback, i
   let tempCtx = tempCanvas.getContext('2d');
   tempCanvas.width = avatarImage.rectWidth;
   tempCanvas.height = avatarImage.rectHeight;
-  
+
   let activeParts = {};
   activeParts.rect = this.getActivePartSet(avatarImage.isHeadOnly ? "head" : "figure");
   activeParts.head = this.getActivePartSet("head");

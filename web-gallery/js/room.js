@@ -302,7 +302,7 @@ Room.prototype.drawPlayer = function(player) {
 Room.prototype.drawRoomItems = function() {
   Object.keys(this.roomItems).forEach(key => {
     if (this.roomItems[key] != null) {
-      if (this.roomItems[key].ready) {
+      if (this.roomItems[key].ready && this.roomItems[key].getCurrentBaseSprite() != null) {
         let baseSprite = this.roomItems[key].getCurrentBaseSprite();
         let drawableSprite = new IsometricDrawableSprite(baseSprite.sprite, this.roomItems[key].currentSilhouette(), this.roomItems[key].x, this.roomItems[key].y, this.roomItems[key].z, baseSprite.offsetX +32, baseSprite.offsetY +16, DrawableSprite.PRIORITY_ROOM_ITEM);
         drawableSprite.additiveSprite = baseSprite.additiveSprite;
@@ -317,7 +317,7 @@ Room.prototype.drawRoomItems = function() {
 Room.prototype.drawWallItems = function() {
   Object.keys(this.wallItems).forEach(key => {
     if (this.wallItems[key] != null) {
-      if (this.wallItems[key].ready) {
+      if (this.wallItems[key].ready && this.wallItems[key].getCurrentBaseSprite() != null) {
         let baseSprite = this.wallItems[key].getCurrentBaseSprite();
         let drawableSprite = new DrawableSprite(baseSprite.sprite, this.wallItems[key].currentSilhouette(), this.wallItems[key].x + baseSprite.offsetX, this.wallItems[key].y + baseSprite.offsetY, DrawableSprite.PRIORITY_WALL_ITEM);
         drawableSprite.additiveSprite = baseSprite.additiveSprite;

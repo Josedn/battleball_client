@@ -1,4 +1,4 @@
-FurnitureImager.LOCAL_RESOURCES_URL = "/web-gallery/hof_furni/";
+FurnitureImager.LOCAL_RESOURCES_URL = "//images.bobba.io/hof_furni/";
 
 function FurniSprite(itemName, size, layer, direction, frame, color, layerData) {
   this.itemName = itemName;
@@ -33,7 +33,7 @@ FurniSprite.prototype.downloadAsync = function() {
       reject('Could not load image: ' + img.src);
     }.bind(this);
   }.bind(this));
-
+  img.crossOrigin = "anonymous";
   img.src = FurnitureImager.LOCAL_RESOURCES_URL + this.itemName + "/" + this.resourceName + ".png";
   return d;
 };

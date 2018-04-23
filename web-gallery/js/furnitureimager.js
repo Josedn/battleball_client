@@ -272,10 +272,10 @@ FurnitureImager.prototype.generateAll = function(type, itemId, size) {
       if (visualization.animations != null) {
         for (stateId in visualization.animations) {
           let count = 1;
-          for (animation of visualization.animations[stateId]) {
-            if (animation.frameSequence != null) {
-              if (count < animation.frameSequence.length) {
-                count = animation.frameSequence.length;
+          for (animationLayer of visualization.animations[stateId].layers) {
+            if (animationLayer.frameSequence != null) {
+              if (count < animationLayer.frameSequence.length) {
+                count = animationLayer.frameSequence.length;
               }
             }
           }
@@ -285,7 +285,7 @@ FurnitureImager.prototype.generateAll = function(type, itemId, size) {
       this.bases[type][itemId].states = states;
       const promises = [];
 
-      for (direction of visualization.directions) {
+      for (direction in visualization.directions) {
         for (stateId in states) {
           const frames = states[stateId];
           for (let frame = 0; frame < frames; frame++) {
@@ -350,9 +350,9 @@ FurnitureImager.prototype.generateItem = function(type, itemId, direction, state
         }
 
         if (visualization.animations != null && visualization.animations[state] != null) {
-          for (animation of visualization.animations[state]) {
-            if (animation.layerId == i && animation.frameSequence != null) {
-              spriteFrame = animation.frameSequence[frame % animation.frameSequence.length];
+          for (animationLayer of visualization.animations[state].layers) {
+            if (animationLayer.layerId == i && animationLayer.frameSequence != null) {
+              spriteFrame = animationLayer.frameSequence[frame % animationLayer.frameSequence.length];
             }
           }
         }

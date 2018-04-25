@@ -35,6 +35,7 @@ function AvatarSprite(uniqueName, action, type, isSmall, partId, direction, fram
   this.frame = frame;
   this.color = color;
   this.resourceName = this.getResourceName();
+  this.promise = null;
 };
 
 AvatarSprite.prototype.getResourceName = function() {
@@ -53,22 +54,24 @@ AvatarSprite.prototype.getResourceName = function() {
 };
 
 AvatarSprite.prototype.downloadAsync = function() {
-  let img = new Image();
-  let d = new Promise(function (resolve, reject) {
-    img.onload = function () {
-      this.resource = img;
-      //console.log("downloaded " + this.lib + " -> " + this.getResourceName());
-      resolve(img);
-    }.bind(this);
+  if (this.promise == null) {
+    let img = new Image();
+    this.promise = new Promise(function (resolve, reject) {
+      img.onload = function () {
+        this.resource = img;
+        //console.log("downloaded " + this.lib + " -> " + this.getResourceName());
+        resolve(img);
+      }.bind(this);
 
-    img.onerror = function () {
-      console.log("NOT DOWNLOADED "  + this.lib + " -> " + this.getResourceName());
-      reject('Could not load image: ' + img.src);
-    }.bind(this);
-  }.bind(this));
-  img.crossOrigin = "anonymous";
-  img.src = AvatarImager.LOCAL_RESOURCES_URL + this.lib + "/" + this.lib + "_" + this.getResourceName() + ".png";
-  return d;
+      img.onerror = function () {
+        console.log("NOT DOWNLOADED "  + this.lib + " -> " + this.getResourceName());
+        reject('Could not load image: ' + img.src);
+      }.bind(this);
+    }.bind(this));
+    img.crossOrigin = "anonymous";
+    img.src = AvatarImager.LOCAL_RESOURCES_URL + this.lib + "/" + this.lib + "_" + this.getResourceName() + ".png";
+  }
+  return this.promise;
 };
 
 function AvatarImage(figure, direction, headDirection, action, gesture, frame, isHeadOnly, scale) {
@@ -219,6 +222,7 @@ AvatarImage.prototype.isValidDirection = function(direction) {
 function AvatarImager() {
   this.ready = false;
   this.offsets = {};
+  this.chunks = {};
 };
 
 AvatarImager.prototype.initialize = function(onReady) {
@@ -270,6 +274,13 @@ AvatarImager.prototype.getActivePartSet = function(partSet) {
 AvatarImager.prototype.getPartResource = function(uniqueName, action, type, isSmall, partId, direction, frame, color) {
   let partFrame = this.getFrameNumber(type, action, frame);
   let resource = new AvatarSprite(uniqueName, action, type, isSmall, partId, direction, partFrame, color);
+  let resourceName = resource.getResourceName();
+  if (this.chunks[resourceName] != null && this.chunks[resourceName].resource != null) {
+    resource.resource = this.chunks[resourceName].resource;
+    resource.promise = this.chunks[resourceName].promise;
+  } else {
+    this.chunks[resourceName] = resource;
+  }
   return resource;
 };
 

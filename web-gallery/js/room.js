@@ -1,4 +1,4 @@
-PrepareQueue.MAX_CONCURRENT_PROMISES = 10;
+PrepareQueue.MAX_CONCURRENT_PROMISES = 3;
 
 function PrepareQueue() {
   this.queue = [];

@@ -1,20 +1,24 @@
+PrepareQueue.MAX_CONCURRENT_PROMISES = 10;
+
 function PrepareQueue() {
   this.queue = [];
-  this.currentPromise = null;
+  this.currentPromises = 0;
 }
 
 PrepareQueue.prototype.push = function(promise, params) {
+  //promise(params);
   this.queue.push({promise, params});
-  if (this.currentPromise == null && this.queue.length == 1) {
+  if (this.currentPromises <= PrepareQueue.MAX_CONCURRENT_PROMISES) {
     this.moveNext();
   }
 };
 
 PrepareQueue.prototype.moveNext = function(){
-  if (this.currentPromise == null && this.queue.length > 0) {
-    this.currentPromise = this.queue.shift();
-    this.currentPromise.promise(this.currentPromise.params).then(() => {
-      this.currentPromise = null;
+  if (this.currentPromises <= PrepareQueue.MAX_CONCURRENT_PROMISES && this.queue.length > 0) {
+    const currentPromise = this.queue.shift();
+    this.currentPromises++;
+    currentPromise.promise(currentPromise.params).then(() => {
+      this.currentPromises--;
       this.moveNext();
     });
   }

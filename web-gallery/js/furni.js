@@ -43,7 +43,7 @@ Furni.prototype.prepare = function(furnitureImager) {
     var p = this.loadSprites(furnitureImager);
 
     Promise.all(p).then(function (loaded) {
-      updateStatus("Sprites loaded (" + this.baseItem.itemName + " furniId:" + this.id + ")");
+      //updateStatus("Sprites loaded (" + this.baseItem.itemName + " furniId:" + this.id + ")");
       this.ready = true;
       resolve();
     }.bind(this),

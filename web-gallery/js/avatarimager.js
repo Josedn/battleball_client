@@ -291,7 +291,7 @@ AvatarImager.prototype.getColorByPaletteId = function(paletteId, colorId) {
 AvatarImager.prototype.getPartColor = function(figure) {
   let parts = {};
   let partSet = this.figuredata['settype'][figure.type];
-  if (partSet['set'][figure.id]['part'] != null) {
+  if (partSet['set'][figure.id] != null && partSet['set'][figure.id]['part'] != null) {
     partSet['set'][figure.id]['part'].forEach(part => {
       //console.log(figure);
       //console.log(part);
@@ -311,7 +311,7 @@ AvatarImager.prototype.getPartColor = function(figure) {
   //r63 ?
 
   parts.hidden = [];
-  if (Array.isArray(partSet['set'][figure.id]['hidden'])) {
+  if (partSet['set'][figure.id] != null && Array.isArray(partSet['set'][figure.id]['hidden'])) {
     for (partType of partSet['set'][figure.id]['hidden']) {
       parts.hidden.push(partType);
     }
@@ -437,10 +437,8 @@ AvatarImager.prototype.generateGeneric = function(avatarImage, canvasCallback, i
 
           if (this.offsets[uniqueName] == null) {
             this.offsets[uniqueName] = { 'promise': this.downloadOffsetAsync(uniqueName), 'data' : {} };
-            offsetsPromises.push(this.offsets[uniqueName].promise);
-          } else if (this.offsets[uniqueName].data != {}) {
-            offsetsPromises.push(this.offsets[uniqueName].promise);
           }
+          offsetsPromises.push(this.offsets[uniqueName].promise);
 
           let color = drawablePart.colorable ? drawablePart.color : null;
           let drawPartChunk = this.getPartResource(uniqueName, drawAction, type, avatarImage.isSmall, drawablePart["id"], drawDirection, avatarImage.frame, color);
@@ -520,7 +518,7 @@ AvatarImager.prototype.generateGeneric = function(avatarImage, canvasCallback, i
             }
             tempCtx.drawImage(img, posX, posY);
           } else {
-            console.log("Missing resource: " + chunk.getResourceName());
+            //console.log("Missing resource: " + chunk.getResourceName());
           }
         }
       }

@@ -231,6 +231,7 @@ function FurniBase(itemId, itemName, size) {
   this.itemName = itemName;
   this.size = size;
   this.sprites = {};
+  this.promise = null;
 };
 
 FurnitureImager.prototype.generateWallItem = function(itemId, size) {
@@ -245,6 +246,9 @@ FurnitureImager.prototype.generateAll = function(type, itemId, size) {
   let itemName = this.getItemName(type, itemId);
   let colorId = 0;
 
+  if (this.bases[type][itemId] != null && this.bases[type][itemId].promise != null) {
+    return this.bases[type][itemId].promise;
+  }
   this.bases[type][itemId] = new FurniBase(itemId, itemName, size);
 
   if (itemName.includes("*")) {
@@ -257,12 +261,10 @@ FurnitureImager.prototype.generateAll = function(type, itemId, size) {
 
   if (this.offsets[type][itemName] == null) {
     this.offsets[type][itemName] = { 'promise': this.downloadOffsetAsync(type, itemName), 'data': {} };
-    offsetPromise = this.offsets[type][itemName].promise;
-  } else if (this.offsets[type][itemName].data != {}) {
-    offsetPromise = this.offsets[type][itemName].promise;
   }
+  offsetPromise = this.offsets[type][itemName].promise;
 
-  return new Promise((resolve, reject) => {
+  const finalPromise = new Promise((resolve, reject) => {
     offsetPromise.catch(() => {
       reject("Error downloading offset");
     }).then(() => {
@@ -305,6 +307,8 @@ FurnitureImager.prototype.generateAll = function(type, itemId, size) {
       })
     });
   });
+  this.bases[type][itemId].promise = finalPromise;
+  return finalPromise;
 };
 
 FurnitureImager.prototype.getFurnitureSpriteKey = function(itemId, direction, stateId, frame, size) {

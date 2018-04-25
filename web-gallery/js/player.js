@@ -26,6 +26,7 @@ Player.prototype.prepare = function(avatarImager) {
     function (error) {
       updateStatus("Error loading sprites: " + error);
       //reject("Error loading sprites: " + error);
+      console.log(error.stack);
       resolve("Error loading sprites: " + error);
     }.bind(this))
   });

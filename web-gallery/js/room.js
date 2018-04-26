@@ -294,7 +294,7 @@ Room.prototype.drawPlayer = function(player) {
   this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage('shadow_tile'), null, player.x, player.y, this.heightmap[Math.floor(player.x)][Math.floor(player.y)] - 1, 0, 0, shadowPrio));
   var offsetX = (player.rot == 6 || player.rot == 5 || player.rot == 4) ? 3 : 0;
   if (player.ready) {
-    this.drawQueue.queue(new IsometricDrawableSprite(player.currentSprite(), player.currentSilhouette(), player.x, player.y, player.z, offsetX, -85, prio));
+    this.drawQueue.queue(new IsometricDrawableSprite(player.currentSprite(), player.currentSilhouette(), player.x, player.y, player.z, offsetX, -85, prio, player));
   } else {
     this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage(player.getCurrentAvatarSpriteKey()), null, player.x, player.y, player.z, offsetX, -85, prio));
   }
@@ -308,9 +308,17 @@ Room.prototype.drawRoomItems = function() {
     if (this.roomItems[key] != null) {
       if (this.roomItems[key].ready && this.roomItems[key].getCurrentBaseSprite() != null) {
         let baseSprite = this.roomItems[key].getCurrentBaseSprite();
-        let drawableSprite = new IsometricDrawableSprite(baseSprite.sprite, this.roomItems[key].currentSilhouette(), this.roomItems[key].x, this.roomItems[key].y, this.roomItems[key].z, baseSprite.offsetX +32, baseSprite.offsetY +16, DrawableSprite.PRIORITY_ROOM_ITEM);
+
+        let i = 0;
+        for (layer of baseSprite.layers) {
+          this.drawQueue.queue(new DrawableFurniChunk(layer.img, layer.additive, this.roomItems[key].x, this.roomItems[key].y, this.roomItems[key].z, i++, layer.zIndex, layer.posX + baseSprite.offsetX +32, layer.posY + baseSprite.offsetY +16, DrawableSprite.PRIORITY_ROOM_ITEM, this.roomItems[key]));
+        }
+
+        //this.drawQueue.queue(new DrawableRoomItemSpriteCollection(baseSprite.layers, this.roomItems[key].x, this.roomItems[key].y, this.roomItems[key].z, baseSprite.offsetX +32, baseSprite.offsetY +16, DrawableSprite.PRIORITY_ROOM_ITEM));
+
+        /*let drawableSprite = new IsometricDrawableSprite(baseSprite.sprite, this.roomItems[key].currentSilhouette(), this.roomItems[key].x, this.roomItems[key].y, this.roomItems[key].z, baseSprite.offsetX +32, baseSprite.offsetY +16, DrawableSprite.PRIORITY_ROOM_ITEM);
         drawableSprite.additiveSprite = baseSprite.additiveSprite;
-        this.drawQueue.queue(drawableSprite);
+        this.drawQueue.queue(drawableSprite);*/
       } else {
         this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage('furni_placeholder'), null, this.roomItems[key].x, this.roomItems[key].y, this.roomItems[key].z, -2, -33, DrawableSprite.PRIORITY_ROOM_ITEM));
       }
@@ -324,8 +332,10 @@ Room.prototype.drawWallItems = function() {
       if (this.wallItems[key].ready && this.wallItems[key].getCurrentBaseSprite() != null) {
         let baseSprite = this.wallItems[key].getCurrentBaseSprite();
         let drawableSprite = new DrawableSprite(baseSprite.sprite, this.wallItems[key].currentSilhouette(), this.wallItems[key].x + baseSprite.offsetX, this.wallItems[key].y + baseSprite.offsetY, DrawableSprite.PRIORITY_WALL_ITEM);
-        drawableSprite.additiveSprite = baseSprite.additiveSprite;
         this.drawQueue.queue(drawableSprite);
+        if (baseSprite.additiveSprite != null) {
+          this.drawQueue.queue(new DrawableAdditiveSprite(baseSprite.additiveSprite, this.wallItems[key].currentSilhouette(), this.wallItems[key].x + baseSprite.offsetX, this.wallItems[key].y + baseSprite.offsetY, DrawableSprite.PRIORITY_WALL_ITEM));
+        }
       } else {
         this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('furni_placeholder'), null, this.wallItems[key].x - 32, this.wallItems[key].y - 16, DrawableSprite.PRIORITY_WALL_ITEM));
       }
@@ -379,16 +389,19 @@ Room.prototype.draw = function() {
   this.drawFloor();
   this.drawPlayers();
   this.drawSelectedTile();
-  this.drawRoomItems();
   this.drawWallItems();
+  this.drawRoomItems();
 
   var ctx = this.game.ctx;
   var auxCtx = this.game.auxCtx;
   while (this.drawQueue.length > 0) {
     var drawable = this.drawQueue.dequeue();
+    drawable.draw(ctx, auxCtx, this.camera.x, this.camera.y);
+
+    /*
     var screenX = Math.round(drawable.getScreenX() + this.camera.x);
     var screenY = Math.round(drawable.getScreenY() + this.camera.y);
-    //if (screenX > 0 && screenY > 0 && screenX < this.camera.width - 100 && screenY < this.camera.height) {
+
     ctx.globalCompositeOperation = "source-over";
     ctx.drawImage(drawable.sprite, screenX, screenY);
     if (drawable.additiveSprite != null) {
@@ -398,12 +411,12 @@ Room.prototype.draw = function() {
     if (drawable.selectableSprite != null) {
       auxCtx.drawImage(drawable.selectableSprite, screenX, screenY);
     }
-    //}
+    */
   }
   ctx.globalCompositeOperation = "source-over";
   var chatSprites = this.chatManager.getDrawableSprites();
   chatSprites.forEach(chatSprite => {
-    ctx.drawImage(chatSprite.sprite, chatSprite.getScreenX() + this.camera.x, chatSprite.getScreenY() + this.camera.y);
+    chatSprite.draw(ctx, auxCtx, this.camera.x, this.camera.y);
   });
 };
 

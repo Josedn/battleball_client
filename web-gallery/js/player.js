@@ -52,7 +52,7 @@ Player.prototype.isSpeaking = function() {
 };
 
 Player.prototype.getCurrentAvatarSpriteKey = function() {
-  let action = ["std"];
+  let action = ["sit"];
   let gesture = "std";
   let frame = 0;
   if (this.isWaving()) {
@@ -71,11 +71,11 @@ Player.prototype.getCurrentAvatarSpriteKey = function() {
     action = ["wlk", "wav"];
     frame = this.genericFrame;
   }
-  if (!this.isWalking() && !this.isWaving() && this.blinkCounter > 3800) {
+  /*if (!this.isWalking() && !this.isWaving() && this.blinkCounter > 3800) {
     gesture = "eyb";
     action = ["std"];
     frame = 0;
-  }
+  }*/
   return this.sprites.getAvatarSpriteKey(this.rot, this.rot, action, gesture, frame);
 };
 Player.prototype.currentSprite = function() {

@@ -349,6 +349,22 @@ FurnitureImager.prototype.generateItem = function(type, itemId, direction, state
           layerData.alpha = 77;
         }
 
+        if (visualization.layers != null) {
+          for (layer of visualization.layers) {
+            if (layer.id == i) {
+              layerData = layer;
+            }
+          }
+        }
+
+        if (visualization.directions != null && visualization.directions[direction]) {
+          for (overrideLayer of visualization.directions[direction]) {
+            if (overrideLayer.layerId == i && overrideLayer.z != null) {
+              layerData.z = overrideLayer.z;
+            }
+          }
+        }
+
         if (visualization.colors != null && visualization.colors[colorId] != null) {
           for (colorLayer of visualization.colors[colorId]) {
             if (colorLayer.layerId == i) {
@@ -361,14 +377,6 @@ FurnitureImager.prototype.generateItem = function(type, itemId, direction, state
           for (animationLayer of visualization.animations[state].layers) {
             if (animationLayer.layerId == i && animationLayer.frameSequence != null) {
               spriteFrame = animationLayer.frameSequence[frame % animationLayer.frameSequence.length];
-            }
-          }
-        }
-
-        if (visualization.layers != null) {
-          for (layer of visualization.layers) {
-            if (layer.id == i) {
-              layerData = layer;
             }
           }
         }
@@ -426,6 +434,8 @@ FurnitureImager.prototype.generateItem = function(type, itemId, direction, state
         tempCanvasAdd.height = lowerY - upperY;
         tempCtxAdd.globalCompositeOperation = "lighter";
 
+        let arrayCanvas = [];
+
         let useAdd = false;
         let useFlipX = false;
 
@@ -434,6 +444,8 @@ FurnitureImager.prototype.generateItem = function(type, itemId, direction, state
             let posX = -lefterX - parseInt(chunk.asset.x);
             let posY = -upperY - parseInt(chunk.asset.y);
             let img = chunk.resource;
+            let zIndex = 0;
+
             if (chunk.asset.flipH != null && chunk.asset.flipH == "1") {
               img = this.flipSprite(img);
               posX = parseInt(chunk.asset.x) - img.width - lefterFlippedX;
@@ -442,6 +454,9 @@ FurnitureImager.prototype.generateItem = function(type, itemId, direction, state
             if (chunk.layerData.alpha != null) {
               img = this.tintSprite(img, "ffffff", chunk.layerData.alpha);
             }
+            if (chunk.layerData.z != null) {
+              zIndex = chunk.layerData.z;
+            }
             if (chunk.color != null) {
               img = this.tintSprite(img, chunk.color, 255);
             }
@@ -449,17 +464,18 @@ FurnitureImager.prototype.generateItem = function(type, itemId, direction, state
               useAdd = true;
               //tempCtxAdd.globalCompositeOperation = "lighter";
               tempCtxAdd.drawImage(img, posX, posY);
+              arrayCanvas.push({img, posX, posY, zIndex, additive: true});
             } else {
               //tempCtx.globalCompositeOperation = "source-over";
               tempCtx.drawImage(img, posX, posY);
+              arrayCanvas.push({img, posX, posY, zIndex, additive: false});
             }
           }
         }
         if (useFlipX) {
           lefterX = lefterFlippedX;
         }
-
-        this.bases[type][itemId].sprites[key] = { sprite : tempCanvas, offsetX: lefterX, offsetY: upperY };
+        this.bases[type][itemId].sprites[key] = { sprite: tempCanvas, offsetX: lefterX, offsetY: upperY, layers: arrayCanvas };
         if (useAdd) {
           this.bases[type][itemId].sprites[key].additiveSprite = tempCanvasAdd;
         }

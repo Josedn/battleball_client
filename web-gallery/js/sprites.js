@@ -266,13 +266,50 @@ DrawableSprite.prototype.getComparableItem = function() {
   return this.screenY;
 };
 
-function IsometricDrawableSprite(sprite, selectableSprite, mapX, mapY, mapZ, offsetX, offsetY, priority) {
+DrawableSprite.prototype.draw = function(ctx, auxCtx, cameraX, cameraY) {
+  ctx.globalCompositeOperation = "source-over";
+  ctx.drawImage(this.sprite, cameraX + this.getScreenX(), cameraY + this.getScreenY());
+  if (this.selectableSprite != null) {
+    auxCtx.drawImage(this.selectableSprite, cameraX + this.getScreenX(), cameraY + this.getScreenY());
+  }
+};
+
+function DrawableAdditiveSprite(sprite, selectableSprite, screenX, screenY, priority) {
+  this.sprite = sprite;
+  this.selectableSprite = selectableSprite;
+  this.screenX = screenX;
+  this.screenY = screenY;
+  this.priority = priority;
+}
+
+DrawableAdditiveSprite.prototype.getScreenX = function() {
+  return this.screenX;
+};
+
+DrawableAdditiveSprite.prototype.getScreenY = function() {
+  return this.screenY;
+};
+
+DrawableAdditiveSprite.prototype.getComparableItem = function() {
+  return this.screenY;
+};
+
+DrawableAdditiveSprite.prototype.draw = function(ctx, auxCtx, cameraX, cameraY) {
+  ctx.globalCompositeOperation = "lighter";
+  ctx.drawImage(this.sprite, cameraX + this.getScreenX(), cameraY + this.getScreenY());
+  if (this.selectableSprite != null) {
+    auxCtx.drawImage(this.selectableSprite, cameraX + this.getScreenX(), cameraY + this.getScreenY());
+  }
+};
+
+function IsometricDrawableSprite(sprite, selectableSprite, mapX, mapY, mapZ, offsetX, offsetY, priority, father) {
   DrawableSprite.call(this, sprite, selectableSprite, 0, 0, priority);
   this.mapX = mapX;
   this.mapY = mapY;
   this.mapZ = mapZ;
   this.offsetX = offsetX;
   this.offsetY = offsetY;
+  this.father = father;
 }
 
 IsometricDrawableSprite.prototype.getScreenX = function() {
@@ -284,5 +321,63 @@ IsometricDrawableSprite.prototype.getScreenY = function() {
 };
 
 IsometricDrawableSprite.prototype.getComparableItem = function() {
-  return (this.mapX + this.mapY) * (Game.TILE_H / 2) + this.mapZ;
+  if (this.father != null) {
+    this.father.comparableItem = (this.mapX + this.mapY) * (Game.TILE_H / 2) + (this.mapZ * Game.TILE_H) + 0.01;
+  }
+  return (this.mapX + this.mapY) * (Game.TILE_H / 2) + (this.mapZ * Game.TILE_H) + 0.01;
+};
+
+IsometricDrawableSprite.prototype.draw = function(ctx, auxCtx, cameraX, cameraY) {
+  ctx.globalCompositeOperation = "source-over";
+  ctx.drawImage(this.sprite, cameraX + this.getScreenX(), cameraY + this.getScreenY());
+  if (this.selectableSprite != null) {
+    auxCtx.drawImage(this.selectableSprite, cameraX + this.getScreenX(), cameraY + this.getScreenY());
+  }
+};
+
+function DrawableFurniChunk(sprite, additive, mapX, mapY, mapZ, layerId, zIndex, offsetX, offsetY, priority, father) {
+  this.sprite = sprite;
+  this.additive = additive;
+  this.mapX = mapX;
+  this.mapY = mapY;
+  this.mapZ = mapZ;
+  this.compareX = mapX;
+  this.compareY = mapY;
+  this.compareZ = mapZ;
+  this.layerId = (parseInt(layerId) + 2) / 10000;
+  this.zIndex = parseFloat(zIndex);
+  //this.compareY = mapY + (Math.floor(zIndex / 1000));
+  //this.compareX = mapX + (zIndex % 100);
+  this.compareZ = (zIndex % 1000) / 2000;
+  this.compareY = mapY + (Math.floor(zIndex / 1000));
+  this.offsetX = offsetX;
+  this.offsetY = offsetY;
+  this.priority = priority;
+  this.father = father;
+}
+
+DrawableFurniChunk.prototype.getScreenX = function() {
+  return (this.mapX - this.mapY) * (Game.TILE_W / 2) + this.offsetX;
+};
+
+DrawableFurniChunk.prototype.getScreenY = function() {
+  return (this.mapX + this.mapY) * (Game.TILE_H / 2) + this.offsetY - (this.mapZ * Game.TILE_H);
+};
+
+DrawableFurniChunk.prototype.getComparableItem = function() {
+  if (this.father != null) {
+    if (this.father.comparableItem == null) {
+      this.father.comparableItem = {};
+    }
+    this.father.comparableItem[this.layerId] = (this.compareX + this.compareY) * (Game.TILE_H / 2) + this.compareZ;
+  }
+  return (this.compareX + this.compareY) * (Game.TILE_H / 2) + (this.mapZ * Game.TILE_H / 2) + this.compareZ;
+};
+
+DrawableFurniChunk.prototype.draw = function(ctx, auxCtx, cameraX, cameraY) {
+  ctx.globalCompositeOperation = "source-over";
+  if (this.additive) {
+    ctx.globalCompositeOperation = "lighter";
+  }
+  ctx.drawImage(this.sprite, cameraX + this.getScreenX(), cameraY + this.getScreenY());
 };

@@ -302,14 +302,13 @@ DrawableAdditiveSprite.prototype.draw = function(ctx, auxCtx, cameraX, cameraY) 
   }
 };
 
-function IsometricDrawableSprite(sprite, selectableSprite, mapX, mapY, mapZ, offsetX, offsetY, priority, father) {
+function IsometricDrawableSprite(sprite, selectableSprite, mapX, mapY, mapZ, offsetX, offsetY, priority) {
   DrawableSprite.call(this, sprite, selectableSprite, 0, 0, priority);
   this.mapX = mapX;
   this.mapY = mapY;
   this.mapZ = mapZ;
   this.offsetX = offsetX;
   this.offsetY = offsetY;
-  this.father = father;
 }
 
 IsometricDrawableSprite.prototype.getScreenX = function() {
@@ -321,22 +320,22 @@ IsometricDrawableSprite.prototype.getScreenY = function() {
 };
 
 IsometricDrawableSprite.prototype.getComparableItem = function() {
-  if (this.father != null) {
-    this.father.comparableItem = (this.mapX + this.mapY) * (Game.TILE_H / 2) + (this.mapZ * Game.TILE_H) + 0.01;
-  }
-  return (this.mapX + this.mapY) * (Game.TILE_H / 2) + (this.mapZ * Game.TILE_H) + 0.01;
+  return (Math.floor(this.mapX) + Math.floor(this.mapY)) * (Game.TILE_H / 2) + (this.mapZ * Game.TILE_H);
 };
 
 IsometricDrawableSprite.prototype.draw = function(ctx, auxCtx, cameraX, cameraY) {
-  ctx.globalCompositeOperation = "source-over";
-  ctx.drawImage(this.sprite, cameraX + this.getScreenX(), cameraY + this.getScreenY());
+  if (this.sprite != null) {
+    ctx.globalCompositeOperation = "source-over";
+    ctx.drawImage(this.sprite, cameraX + this.getScreenX(), cameraY + this.getScreenY());
+  }
   if (this.selectableSprite != null) {
     auxCtx.drawImage(this.selectableSprite, cameraX + this.getScreenX(), cameraY + this.getScreenY());
   }
 };
 
-function DrawableFurniChunk(sprite, additive, mapX, mapY, mapZ, layerId, zIndex, offsetX, offsetY, priority, father) {
+function DrawableFurniChunk(sprite, selectableSprite, additive, mapX, mapY, mapZ, layerId, zIndex, offsetX, offsetY, priority) {
   this.sprite = sprite;
+  this.selectableSprite = selectableSprite;
   this.additive = additive;
   this.mapX = mapX;
   this.mapY = mapY;
@@ -344,16 +343,13 @@ function DrawableFurniChunk(sprite, additive, mapX, mapY, mapZ, layerId, zIndex,
   this.compareX = mapX;
   this.compareY = mapY;
   this.compareZ = mapZ;
-  this.layerId = (parseInt(layerId) + 2) / 10000;
+  this.layerId = (parseInt(layerId) + 2) / 100000;
   this.zIndex = parseFloat(zIndex);
-  //this.compareY = mapY + (Math.floor(zIndex / 1000));
-  //this.compareX = mapX + (zIndex % 100);
-  this.compareZ = (zIndex % 1000) / 2000;
+  this.compareZ = (zIndex % 1000) / 1000;
   this.compareY = mapY + (Math.floor(zIndex / 1000));
   this.offsetX = offsetX;
   this.offsetY = offsetY;
   this.priority = priority;
-  this.father = father;
 }
 
 DrawableFurniChunk.prototype.getScreenX = function() {
@@ -365,13 +361,7 @@ DrawableFurniChunk.prototype.getScreenY = function() {
 };
 
 DrawableFurniChunk.prototype.getComparableItem = function() {
-  if (this.father != null) {
-    if (this.father.comparableItem == null) {
-      this.father.comparableItem = {};
-    }
-    this.father.comparableItem[this.layerId] = (this.compareX + this.compareY) * (Game.TILE_H / 2) + this.compareZ;
-  }
-  return (this.compareX + this.compareY) * (Game.TILE_H / 2) + (this.mapZ * Game.TILE_H / 2) + this.compareZ;
+  return (this.compareX + this.compareY) * (Game.TILE_H / 2) + (this.mapZ * Game.TILE_H) + this.compareZ + this.layerId - 0.01;
 };
 
 DrawableFurniChunk.prototype.draw = function(ctx, auxCtx, cameraX, cameraY) {
@@ -380,4 +370,7 @@ DrawableFurniChunk.prototype.draw = function(ctx, auxCtx, cameraX, cameraY) {
     ctx.globalCompositeOperation = "lighter";
   }
   ctx.drawImage(this.sprite, cameraX + this.getScreenX(), cameraY + this.getScreenY());
+  if (this.selectableSprite != null) {
+    auxCtx.drawImage(this.selectableSprite, cameraX + this.getScreenX(), cameraY + this.getScreenY());
+  }
 };

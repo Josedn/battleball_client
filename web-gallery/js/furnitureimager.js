@@ -445,6 +445,7 @@ FurnitureImager.prototype.generateItem = function(type, itemId, direction, state
             let posY = -upperY - parseInt(chunk.asset.y);
             let img = chunk.resource;
             let zIndex = 0;
+            let ignoreMouse = false;
 
             if (chunk.asset.flipH != null && chunk.asset.flipH == "1") {
               img = this.flipSprite(img);
@@ -457,6 +458,9 @@ FurnitureImager.prototype.generateItem = function(type, itemId, direction, state
             if (chunk.layerData.z != null) {
               zIndex = chunk.layerData.z;
             }
+            if (chunk.layerData.ignoreMouse != null && chunk.layerData.ignoreMouse == "1") {
+              ignoreMouse = true;
+            }
             if (chunk.color != null) {
               img = this.tintSprite(img, chunk.color, 255);
             }
@@ -464,11 +468,11 @@ FurnitureImager.prototype.generateItem = function(type, itemId, direction, state
               useAdd = true;
               //tempCtxAdd.globalCompositeOperation = "lighter";
               tempCtxAdd.drawImage(img, posX, posY);
-              arrayCanvas.push({img, posX, posY, zIndex, additive: true});
+              arrayCanvas.push({img, posX, posY, zIndex, ignoreMouse, additive: true});
             } else {
               //tempCtx.globalCompositeOperation = "source-over";
               tempCtx.drawImage(img, posX, posY);
-              arrayCanvas.push({img, posX, posY, zIndex, additive: false});
+              arrayCanvas.push({img, posX, posY, zIndex, ignoreMouse, additive: false});
             }
           }
         }

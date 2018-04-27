@@ -32,6 +32,10 @@ Furni.prototype.loadSprites = function(furnitureImager) {
     this.baseItem = base;
     for (spriteId in this.baseItem.sprites) {
       this.sprites.loadLocalImage(spriteId, this.baseItem.sprites[spriteId].sprite);
+      let i = 0;
+      for (layer of this.baseItem.sprites[spriteId].layers) {
+        this.sprites.loadLocalImage(spriteId + "_" + i++, layer.img);
+      }
     }
   });
   return [allSpritesPromise];
@@ -98,6 +102,10 @@ Furni.prototype.tick = function(delta) {
 
 Furni.prototype.getCurrentBaseSprite = function() {
   return this.baseItem.sprites[this.getCurrentFurniSpriteKey()];
+};
+
+Furni.prototype.getCurrentSelectableLayer = function(layerId) {
+  return this.sprites.getSilhouette(this.getCurrentFurniSpriteKey() + "_" + layerId);
 };
 
 Furni.prototype.getCurrentFurniSpriteKey = function() {

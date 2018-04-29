@@ -275,11 +275,11 @@ Room.prototype.drawSelectedTile = function() {
 };
 
 Room.prototype.drawPlayers = function () {
-  Object.keys(this.players).forEach(key => {
+  for (key in this.players) {
     if (this.players[key] != null) {
       this.drawPlayer(this.players[key]);
     }
-  });
+  }
 };
 
 Room.prototype.drawPlayer = function(player) {
@@ -304,7 +304,7 @@ Room.prototype.drawPlayer = function(player) {
 };
 
 Room.prototype.drawRoomItems = function() {
-  Object.keys(this.roomItems).forEach(key => {
+  for (key in this.roomItems) {
     if (this.roomItems[key] != null) {
       if (this.roomItems[key].ready && this.roomItems[key].getCurrentBaseSprite() != null) {
         let baseSprite = this.roomItems[key].getCurrentBaseSprite();
@@ -317,11 +317,11 @@ Room.prototype.drawRoomItems = function() {
         this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage('furni_placeholder'), null, this.roomItems[key].x, this.roomItems[key].y, this.roomItems[key].z, -2, -33, DrawableSprite.PRIORITY_ROOM_ITEM));
       }
     }
-  });
+  }
 };
 
 Room.prototype.drawWallItems = function() {
-  Object.keys(this.wallItems).forEach(key => {
+  for (key in this.wallItems) {
     if (this.wallItems[key] != null) {
       if (this.wallItems[key].ready && this.wallItems[key].getCurrentBaseSprite() != null) {
         let baseSprite = this.wallItems[key].getCurrentBaseSprite();
@@ -334,7 +334,7 @@ Room.prototype.drawWallItems = function() {
         this.drawQueue.queue(new DrawableSprite(this.sprites.getImage('furni_placeholder'), null, this.wallItems[key].x - 32, this.wallItems[key].y - 16, DrawableSprite.PRIORITY_WALL_ITEM));
       }
     }
-  });
+  }
 };
 
 Room.prototype.drawSign = function(player) {
@@ -408,34 +408,33 @@ Room.prototype.draw = function() {
     */
   }
   ctx.globalCompositeOperation = "source-over";
-  var chatSprites = this.chatManager.getDrawableSprites();
-  chatSprites.forEach(chatSprite => {
+  for (chatSprite of this.chatManager.getDrawableSprites()) {
     chatSprite.draw(ctx, auxCtx, this.camera.x, this.camera.y);
-  });
+  }
 };
 
 Room.prototype.tickPlayers = function(delta) {
-  Object.keys(this.players).forEach(key => {
+  for (key in this.players) {
     if (this.players[key] != null) {
       this.players[key].tick(delta);
     }
-  });
+  }
 };
 
 Room.prototype.tickRoomItems = function(delta) {
-  Object.keys(this.roomItems).forEach(key => {
+  for (key in this.roomItems) {
     if (this.roomItems[key] != null && this.roomItems[key].ready) {
       this.roomItems[key].tick(delta);
     }
-  });
+  }
 };
 
 Room.prototype.tickWallItems = function(delta) {
-  Object.keys(this.wallItems).forEach(key => {
+  for (key in this.wallItems) {
     if (this.wallItems[key] != null && this.wallItems[key].ready) {
       this.wallItems[key].tick(delta);
     }
-  });
+  }
 };
 
 Room.prototype.tick = function(delta) {

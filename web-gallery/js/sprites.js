@@ -369,8 +369,16 @@ DrawableFurniChunk.prototype.draw = function(ctx, auxCtx, cameraX, cameraY) {
   if (this.additive) {
     ctx.globalCompositeOperation = "lighter";
   }
-  ctx.drawImage(this.sprite, cameraX + this.getScreenX(), cameraY + this.getScreenY());
+  this.drawCtx(ctx, auxCtx, cameraX, cameraY);
   if (this.selectableSprite != null) {
-    auxCtx.drawImage(this.selectableSprite, cameraX + this.getScreenX(), cameraY + this.getScreenY());
+    this.drawAux(ctx, auxCtx, cameraX, cameraY);
   }
+};
+
+DrawableFurniChunk.prototype.drawCtx = function(ctx, auxCtx, cameraX, cameraY) {
+  ctx.drawImage(this.sprite, cameraX + this.getScreenX(), cameraY + this.getScreenY());
+};
+
+DrawableFurniChunk.prototype.drawAux = function(ctx, auxCtx, cameraX, cameraY) {
+  auxCtx.drawImage(this.selectableSprite, cameraX + this.getScreenX(), cameraY + this.getScreenY());
 };

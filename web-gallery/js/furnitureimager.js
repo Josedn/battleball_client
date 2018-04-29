@@ -464,6 +464,11 @@ FurnitureImager.prototype.generateItem = function(type, itemId, direction, state
             if (chunk.color != null) {
               img = this.tintSprite(img, chunk.color, 255);
             }
+            if (img instanceof HTMLCanvasElement) {
+              var imgFoo = document.createElement('img');
+              imgFoo.src = img.toDataURL();
+              img = imgFoo;
+            }
             if (chunk.layerData.ink != null && chunk.layerData.ink == "ADD") {
               useAdd = true;
               //tempCtxAdd.globalCompositeOperation = "lighter";

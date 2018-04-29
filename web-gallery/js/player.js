@@ -52,7 +52,7 @@ Player.prototype.isSpeaking = function() {
 };
 
 Player.prototype.getCurrentAvatarSpriteKey = function() {
-  let action = ["std"];
+  let action = ["sit"];
   let gesture = "std";
   let frame = 0;
   if (this.isWaving()) {

@@ -53,9 +53,18 @@ Sprites.prototype.loadImage = function (key, src) {
     return d;
 };
 
+Sprites.prototype.convertToImg = function(img) {
+  if (img instanceof HTMLCanvasElement) {
+    var imgFoo = document.createElement('img');
+    imgFoo.src = img.toDataURL();
+    return imgFoo;
+  }
+  return img;
+};
+
 Sprites.prototype.loadLocalImage = function(key, img) {
-  this.images[key] = img;
-  this.silhouettes[key] = this.generateSilhouette(img, this.colorR, this.colorG, this.colorB);
+  this.images[key] = this.convertToImg(img);
+  this.silhouettes[key] = this.convertToImg(this.generateSilhouette(img, this.colorR, this.colorG, this.colorB));
 };
 
 Sprites.prototype.getImage = function (key) {

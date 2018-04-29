@@ -464,21 +464,18 @@ FurnitureImager.prototype.generateItem = function(type, itemId, direction, state
             if (chunk.color != null) {
               img = this.tintSprite(img, chunk.color, 255);
             }
+            if (chunk.layerData.ink != null && chunk.layerData.ink == "ADD") {
+              useAdd = true;
+              tempCtxAdd.drawImage(img, posX, posY);
+            } else {
+              tempCtx.drawImage(img, posX, posY);
+            }
             if (img instanceof HTMLCanvasElement) {
               var imgFoo = document.createElement('img');
               imgFoo.src = img.toDataURL();
               img = imgFoo;
             }
-            if (chunk.layerData.ink != null && chunk.layerData.ink == "ADD") {
-              useAdd = true;
-              //tempCtxAdd.globalCompositeOperation = "lighter";
-              tempCtxAdd.drawImage(img, posX, posY);
-              arrayCanvas.push({img, posX, posY, zIndex, ignoreMouse, additive: true});
-            } else {
-              //tempCtx.globalCompositeOperation = "source-over";
-              tempCtx.drawImage(img, posX, posY);
-              arrayCanvas.push({img, posX, posY, zIndex, ignoreMouse, additive: false});
-            }
+            arrayCanvas.push({img, posX, posY, zIndex, ignoreMouse, additive: chunk.layerData.ink != null && chunk.layerData.ink == "ADD"});
           }
         }
         if (useFlipX) {

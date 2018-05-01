@@ -12,6 +12,7 @@ function Player(id, x, y, z, rot, name, look)
   this.showSignCounter = 0;
   this.updateParams(x, y, z, rot, name, look);
   this.sprites = new Sprites();
+  this.statusses = {};
   this.showSign(10);
 }
 
@@ -39,8 +40,19 @@ Player.prototype.loadSprites = function(avatarImager) {
   ];
 };
 
+Player.prototype.isSitting = function() {
+  if (this.statusses.sit != null) {
+    return true;
+  }
+  return false;
+};
+
 Player.prototype.isWalking = function() {
-  return (this.x != this.targetX || this.y != this.targetY);
+  //return (this.x != this.targetX || this.y != this.targetY);
+  if (this.statusses.mv != null) {
+    return true;
+  }
+  return false;
 };
 
 Player.prototype.isWaving = function() {
@@ -52,9 +64,12 @@ Player.prototype.isSpeaking = function() {
 };
 
 Player.prototype.getCurrentAvatarSpriteKey = function() {
-  let action = ["sit"];
+  let action = ["std"];
   let gesture = "std";
   let frame = 0;
+  if (this.isSitting()) {
+    action = ["sit"];
+  }
   if (this.isWaving()) {
     action = ["wav"];
     frame = this.genericFrame % 2;
@@ -70,6 +85,10 @@ Player.prototype.getCurrentAvatarSpriteKey = function() {
   if (this.isWalking() && this.isWaving()) {
     action = ["wlk", "wav"];
     frame = this.genericFrame;
+  }
+  if (this.isSitting() && this.isWaving()) {
+    action = ["sit", "wav"];
+    frame = this.genericFrame % 2;
   }
   /*if (!this.isWalking() && !this.isWaving() && this.blinkCounter > 3800) {
     gesture = "eyb";
@@ -138,10 +157,10 @@ Player.prototype.speak = function(seconds) {
   this.speakCounter = seconds * 1000;
 }
 
-Player.prototype.setMovement = function(x, y, rot) {
+Player.prototype.setMovement = function(x, y, z) {
   this.targetX = x;
   this.targetY = y;
-  this.rot = rot;
+  this.targetZ = z;
 };
 
 Player.prototype.updateParams = function(x, y, z, rot, name, look) {
@@ -153,6 +172,22 @@ Player.prototype.updateParams = function(x, y, z, rot, name, look) {
   this.rot = rot;
   this.name = name;
   this.look = look;
+};
+
+Player.prototype.updateStatus = function(x, y, z, rot, statusses) {
+  this.x = x;
+  this.y = y;
+  this.z = z;
+  this.rot = rot;
+  this.statusses = statusses;
+  if (this.statusses.mv != null) {
+    var coords = this.statusses.mv.split(',');
+    this.setMovement(parseInt(coords[0]), parseInt(coords[1]), parseFloat(coords[2]));
+  }
+  if (this.statusses.sit != null) {
+    var tempZ = parseFloat(his.statusses.sit);
+    this.z = tempZ;
+  }
 };
 
 Player.prototype.move = function(delta) {
@@ -180,6 +215,19 @@ Player.prototype.move = function(delta) {
     this.y -= Player.SPEED * delta;
     if (this.y < this.targetY) {
       this.y = this.targetY;
+    }
+  }
+
+  if (this.targetZ > this.z) {
+    this.z += Player.SPEED * delta;
+    if (this.z > this.targetZ) {
+      this.z = this.targetZ;
+    }
+  }
+  else if (this.targetZ < this.z) {
+    this.z -= Player.SPEED * delta;
+    if (this.z < this.targetZ) {
+      this.z = this.targetZ;
     }
   }
 };

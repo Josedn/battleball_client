@@ -10,7 +10,7 @@ Communication.OUTGOING_REQUEST_ITEM_INTERACT = 18;
 Communication.INCOMING_LOGIN_OK = 3;
 Communication.INCOMING_MAP_DATA = 4;
 Communication.INCOMING_PLAYERS_DATA = 6;
-Communication.INCOMING_PLAYER_MOVEMENT = 8;
+Communication.INCOMING_PLAYER_STATUS = 8;
 Communication.INCOMING_CHAT = 10;
 Communication.INCOMING_PLAYER_REMOVE = 11;
 Communication.INCOMING_PLAYER_WAVE = 14;
@@ -83,8 +83,8 @@ Communication.prototype.handleMessage = function(data) {
     case Communication.INCOMING_PLAYERS_DATA:
       this.handlePlayers(request);
       break;
-    case Communication.INCOMING_PLAYER_MOVEMENT:
-      this.handleMovement(request);
+    case Communication.INCOMING_PLAYER_STATUS:
+      this.handleStatus(request);
       break;
     case Communication.INCOMING_PLAYER_REMOVE:
       this.handleRemovePlayer(request);
@@ -133,7 +133,7 @@ Communication.prototype.handleMap = function(request) {
 
 Communication.prototype.handlePlayers = function(request) {
   var count = request.popInt();
-  updateStatus("Received (" + count + ") players");
+  //updateStatus("Received (" + count + ") players");
 
   for (var i = 0; i < count; i++) {
     var id = request.popInt();
@@ -152,7 +152,7 @@ Communication.prototype.handlePlayers = function(request) {
 
 Communication.prototype.handleRoomItems = function(request) {
   var count = request.popInt();
-  updateStatus("Received (" + count + ") room items");
+  //updateStatus("Received (" + count + ") room items");
   for (var i = 0; i < count; i++) {
     var id = request.popInt();
     var x = request.popInt();
@@ -170,7 +170,7 @@ Communication.prototype.handleRoomItems = function(request) {
 
 Communication.prototype.handleWallItems = function(request) {
   var count = request.popInt();
-  updateStatus("Received (" + count + ") wall items");
+  //updateStatus("Received (" + count + ") wall items");
   for (var i = 0; i < count; i++) {
     var id = request.popInt();
     var x = request.popInt();
@@ -193,14 +193,32 @@ Communication.prototype.handleFurniState = function(request) {
   }
 };
 
-Communication.prototype.handleMovement = function(request) {
-  var userId = request.popInt();
+Communication.prototype.handleStatus = function(request) {
+  var count = request.popInt();
+  //updateStatus("Received (" + count + ") statusses");
+
+  for (var i = 0; i < count; i++) {
+    var userId = request.popInt();
+    var x = request.popInt();
+    var y  = request.popInt();
+    var z  = request.popFloat();
+    var rot = request.popInt();
+    var statussesCount = request.popInt();
+    var statusses = {};
+    for (var j = 0; j < statussesCount; j++) {
+      var key = request.popString();
+      var value = request.popString();
+      statusses[key] = value;
+    }
+    this.game.currentRoom.updateUserStatus(userId, x, y, z, rot, statusses);
+  }
+  /*var userId = request.popInt();
   var x = request.popInt();
   var y = request.popInt();
   var rot = request.popInt();
   if (this.game.currentRoom != null) {
     this.game.currentRoom.movePlayer(userId, x, y, rot);
-  }
+  }*/
 };
 
 Communication.prototype.handleRemovePlayer = function(request) {

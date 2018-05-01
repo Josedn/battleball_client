@@ -155,19 +155,19 @@ Room.prototype.removeFurni = function(id) {
   }
 };
 
+Room.prototype.updateUserStatus = function(userId, x, y, z, rot, statusses) {
+  var player = this.getPlayer(userId);
+  if (player != null) {
+    player.updateStatus(x, y, z, rot, statusses);
+  }
+};
+
 Room.prototype.removePlayer = function(id) {
   if (id in this.players) {
     if (this.players[id].sprites.colorId in this.selectableSprites) {
       delete(this.selectableSprites[this.players[id].sprites.colorId]);
     }
     delete(this.players[id]);
-  }
-};
-
-Room.prototype.movePlayer = function(userId, x, y, rot) {
-  var player = this.getPlayer(userId);
-  if (player != null) {
-    player.setMovement(x, y, rot);
   }
 };
 

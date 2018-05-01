@@ -185,7 +185,7 @@ Player.prototype.updateStatus = function(x, y, z, rot, statusses) {
     this.setMovement(parseInt(coords[0]), parseInt(coords[1]), parseFloat(coords[2]));
   }
   if (this.statusses.sit != null) {
-    var tempZ = parseFloat(his.statusses.sit);
+    var tempZ = parseFloat(this.statusses.sit);
     this.z = tempZ;
   }
 };

@@ -50,7 +50,18 @@ Game.TILE_W = 64;
 Game.FONT = "400 10pt Ubuntu";
 Game.FONT_BOLD = "700 10pt Ubuntu";
 
+Game.bindActions = function() {
+  var chat_form = document.getElementById("chat_form");
+  chat_form.onsubmit = () => { onChatSubmit(); return false; };
+  var wave_submit = document.getElementById("wave_submit");
+  wave_submit.onclick = () => { onWave(); return false; };
+  var login_form = document.getElementById("login_form");
+  login_form.onsubmit = () => { onLogin(); return false; };
+};
+
 Game.run = function(canvas) {
+  updateStatus("Loading...");
+
   this.canvas = canvas;
   this.ctx = this.canvas.getContext('2d');
 
@@ -63,7 +74,7 @@ Game.run = function(canvas) {
   this.isConnecting = true;
   this.onResize();
 
-  updateStatus("Loading...");
+  this.bindActions();
 
   this.prepareImagers().then(() => {
     this.tryConnect();
@@ -256,16 +267,20 @@ window.onload = function () {
 
   window.addEventListener('touchstart', function(evt) {
     var rect = canvas.getBoundingClientRect();
-    var x = evt.touches[0].clientX - rect.left;
-    var y = evt.touches[0].clientY - rect.top;
-    Game.onTouchStart(x, y, true);
+    if (evt.touches.length == 1) {
+      var x = evt.touches[0].clientX - rect.left;
+      var y = evt.touches[0].clientY - rect.top;
+      Game.onTouchStart(x, y, true);
+    }
   });
 
   window.addEventListener('touchmove', function(evt) {
     var rect = canvas.getBoundingClientRect();
-    var x = evt.touches[0].clientX - rect.left;
-    var y = evt.touches[0].clientY - rect.top;
-    Game.onTouchMove(x, y, true);
+    if (evt.touches.length == 1) {
+      var x = evt.touches[0].clientX - rect.left;
+      var y = evt.touches[0].clientY - rect.top;
+      Game.onTouchMove(x, y, true);
+    }
   });
 
   canvas.addEventListener('mousedown', function(evt) {

@@ -51,7 +51,7 @@
 
     <section class="form_container">
       <section class="lower_item">
-        <form id="chat_form" onsubmit="onChatSubmit(); return false;" autocomplete="off">
+        <form id="chat_form" onsubmit="return false;" autocomplete="off">
           <input type="text" placeholder="Click here to chat..." id="input_chat">
           <input type="submit" value="Say">
         </form>
@@ -64,7 +64,7 @@
           <a href="#"><img src="./web-gallery/images/separator.png"></a>
         </li>
         <li>
-          <a href="#" onclick="onWave();return false;">Wave</a>
+          <a href="#" id="wave_submit" onclick="return false;">Wave</a>
         </li>
         <li>
           <a href="#"><img src="./web-gallery/images/separator.png"></a>
@@ -87,7 +87,7 @@
       <img src="./web-gallery/images/grey_logo.png">
       <br>
       <br>
-      <form id="login_form" onsubmit="onLogin(); return false;">
+      <form id="login_form" onsubmit="return false;">
         <br>
         <input type="text" placeholder="Username" id="input_username">
         <br>
@@ -105,19 +105,24 @@
           <input type="radio" name="look" value="hr-828-1407.sh-3089-110.ha-1013-110.ch-3323-110-92.lg-3058-82.hd-180-10">
         </div>
         <div style="display:inline-block;padding: 10px;">
-          <img src="https://www.habbo.com/habbo-imaging/avatarimage?figure=sh-725-68.he-3258-1410-92.hr-3012-45.ch-665-110.lg-3006-110-110.hd-600-28&direction=3&head_direction=3&action=wlk&gesture=nrm&size=m&frame=0">
-          <br>
-          <input type="radio" name="look" value="sh-725-68.he-3258-1410-92.hr-3012-45.ch-665-110.lg-3006-110-110.hd-600-28">
-        </div>
-        <div style="display:inline-block;padding: 10px;">
-          <img src="https://www.habbo.com/habbo-imaging/avatarimage?figure=ch-3050-104-62.ea-987462904-62.sh-305-1185.lg-275-1193.hd-185-1.hr-828-1034&direction=4&head_direction=4&action=wlk&gesture=nrm&size=m&frame=0">
+          <img src="https://www.habbo.com/habbo-imaging/avatarimage?figure=ch-3050-104-62.ea-987462904-62.sh-305-1185.lg-275-1193.hd-185-1.hr-828-1034&direction=2&head_direction=2&action=wlk&gesture=nrm&size=m&frame=0">
           <br>
           <input type="radio" name="look" value="ch-3050-104-62.ea-987462904-62.sh-305-1185.lg-275-1193.hd-185-1.hr-828-1034">
+        </div>
+        <div style="display:inline-block;padding: 10px;">
+          <img src="https://www.habbo.com/habbo-imaging/avatarimage?figure=sh-725-68.he-3258-1410-92.hr-3012-45.ch-665-110.lg-3006-110-110.hd-600-28&direction=4&head_direction=4&action=wlk&gesture=nrm&size=m&frame=0">
+          <br>
+          <input type="radio" name="look" value="sh-725-68.he-3258-1410-92.hr-3012-45.ch-665-110.lg-3006-110-110.hd-600-28">
         </div>
         <div style="display:inline-block;padding: 10px;">
           <img src="https://www.habbo.com/habbo-imaging/avatarimage?figure=ha-1003-85.ch-665-92.lg-3328-1338-1338.hd-3105-10.sh-3035-64.hr-3012-1394.ea-3169-110.cc-3008-110-110&direction=4&head_direction=4&action=wlk&gesture=nrm&size=m&frame=0">
           <br>
           <input type="radio" name="look" value="ha-1003-85.ch-665-92.lg-3328-1338-1338.hd-3105-10.sh-3035-64.hr-3012-1394.ea-3169-110.cc-3008-110-110">
+        </div>
+        <div style="display:inline-block;padding: 10px;">
+          <img src="https://www.habbo.com/habbo-imaging/avatarimage?figure=ca-1811-62.lg-3018-81.hr-836-45.ch-669-1193.hd-600-10&direction=4&head_direction=4&action=wlk&gesture=nrm&size=m&frame=0">
+          <br>
+          <input type="radio" name="look" value="ca-1811-62.lg-3018-81.hr-836-45.ch-669-1193.hd-600-10">
         </div>
 
         <br>

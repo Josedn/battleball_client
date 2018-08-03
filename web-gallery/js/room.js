@@ -311,7 +311,7 @@ Room.prototype.drawRoomItems = function() {
 
         let i = 0;
         for (layer of baseSprite.layers) {
-          this.drawQueue.queue(new DrawableFurniChunk(layer.img, layer.ignoreMouse ? null : this.roomItems[key].getCurrentSelectableLayer(i), layer.additive, this.roomItems[key].x, this.roomItems[key].y, this.roomItems[key].z, i++, layer.zIndex, layer.posX + baseSprite.offsetX +32, layer.posY + baseSprite.offsetY +16, DrawableSprite.PRIORITY_ROOM_ITEM));
+          this.drawQueue.queue(new DrawableFurniChunk(layer.img, layer.ignoreMouse ? null : this.roomItems[key].getCurrentSelectableLayer(i), layer.additive, this.roomItems[key].x, this.roomItems[key].y, this.roomItems[key].z, i++, layer.zIndex, layer.posX + baseSprite.offsetX +32, layer.posY + baseSprite.offsetY +16, DrawableSprite.PRIORITY_ROOM_ITEM, this.roomItems[key].baseItem));
         }
       } else {
         this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage('furni_placeholder'), null, this.roomItems[key].x, this.roomItems[key].y, this.roomItems[key].z, -2, -33, DrawableSprite.PRIORITY_ROOM_ITEM));
@@ -379,6 +379,10 @@ Room.prototype.tickSelectedUserSign = function() {
 };
 
 Room.prototype.draw = function() {
+  if (DrawableFurniChunk.DEBUG_ENABLED) {
+    DrawableFurniChunk.DEBUG_FLAG = true;
+  }
+
   this.drawWall();
   this.drawFloor();
   this.drawPlayers();
@@ -411,6 +415,8 @@ Room.prototype.draw = function() {
   for (chatSprite of this.chatManager.getDrawableSprites()) {
     chatSprite.draw(ctx, auxCtx, this.camera.x, this.camera.y);
   }
+  DrawableFurniChunk.DEBUG_ENABLED = false;
+  DrawableFurniChunk.DEBUG_FLAG = false;
 };
 
 Room.prototype.tickPlayers = function(delta) {

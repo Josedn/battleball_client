@@ -231,7 +231,7 @@ Communication.prototype.handleRemovePlayer = function(request) {
 Communication.prototype.handleRemoveFurni = function(request) {
   var furniId = request.popInt();
   if (this.game.currentRoom != null) {
-    this.game.currentRoom.removeFurni(userId);
+    this.game.currentRoom.removeFurni(furniId);
   }
 };
 

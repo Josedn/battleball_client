@@ -17,6 +17,12 @@ DrawableSprite.PRIORITY_ROOM_ITEM = 11;
 DrawableSprite.PRIORITY_SIGN = 12;
 DrawableSprite.PRIORITY_CHAT = 13;
 
+DrawableSprite.COMPARABLE_X_Y = 1000000;
+DrawableSprite.COMPARABLE_Z = 10000;
+
+DrawableFurniChunk.DEBUG_ENABLED = false;
+DrawableFurniChunk.DEBUG_FLAG = false;
+
 Sprites.rgb2int = function(r, g, b) {
   return (r << 16) + (g << 8) + (b);
 };
@@ -329,10 +335,18 @@ IsometricDrawableSprite.prototype.getScreenY = function() {
 };
 
 IsometricDrawableSprite.prototype.getComparableItem = function() {
-  return (Math.floor(this.mapX) + Math.floor(this.mapY)) * (Game.TILE_H / 2) + (this.mapZ * Game.TILE_H);
+  if (this.priority == DrawableSprite.PRIORITY_PLAYER) {
+    return (Math.floor(this.mapX) + Math.floor(this.mapY)) * (DrawableSprite.COMPARABLE_X_Y) + ((this.mapZ + 0.001) * (DrawableSprite.COMPARABLE_Z));
+  }
+  return (Math.floor(this.mapX) + Math.floor(this.mapY)) * (DrawableSprite.COMPARABLE_X_Y) + (this.mapZ * (DrawableSprite.COMPARABLE_Z));
 };
 
 IsometricDrawableSprite.prototype.draw = function(ctx, auxCtx, cameraX, cameraY) {
+  if (DrawableFurniChunk.DEBUG_FLAG && this.priority == DrawableSprite.PRIORITY_PLAYER) {
+    console.log("player_" + this.getComparableItem());
+    console.log("x: " + this.mapX);
+    console.log("y: " + this.mapY);
+  }
   if (this.sprite != null) {
     ctx.globalCompositeOperation = "source-over";
     ctx.drawImage(this.sprite, cameraX + this.getScreenX(), cameraY + this.getScreenY());
@@ -342,23 +356,24 @@ IsometricDrawableSprite.prototype.draw = function(ctx, auxCtx, cameraX, cameraY)
   }
 };
 
-function DrawableFurniChunk(sprite, selectableSprite, additive, mapX, mapY, mapZ, layerId, zIndex, offsetX, offsetY, priority) {
+function DrawableFurniChunk(sprite, selectableSprite, additive, mapX, mapY, mapZ, layerId, zIndex, offsetX, offsetY, priority, baseItem) {
   this.sprite = sprite;
   this.selectableSprite = selectableSprite;
   this.additive = additive;
   this.mapX = mapX;
   this.mapY = mapY;
   this.mapZ = mapZ;
-  this.compareX = mapX;
-  this.compareY = mapY;
-  this.compareZ = mapZ;
-  this.layerId = (parseInt(layerId) + 2) / 100000;
-  this.zIndex = parseFloat(zIndex);
-  this.compareZ = (zIndex % 1000) / 1000;
-  this.compareY = mapY + (Math.floor(zIndex / 1000));
+  this.compareX = 0;
+  this.compareY = 0;
+  this.compareZ = 0;
+  this.layerId = parseInt(layerId);
+  this.zIndex = parseInt(zIndex);
+  //this.compareZ = (this.zIndex % 100) / 100;
+  this.compareY = (Math.trunc(this.zIndex / 100)) / 10;
   this.offsetX = offsetX;
   this.offsetY = offsetY;
   this.priority = priority;
+  this.baseItem = baseItem;
 }
 
 DrawableFurniChunk.prototype.getScreenX = function() {
@@ -370,10 +385,17 @@ DrawableFurniChunk.prototype.getScreenY = function() {
 };
 
 DrawableFurniChunk.prototype.getComparableItem = function() {
-  return (this.compareX + this.compareY) * (Game.TILE_H / 2) + (this.mapZ * Game.TILE_H) + this.compareZ + this.layerId - 0.01;
+  return ((this.mapX + this.mapY + this.compareY) * (DrawableSprite.COMPARABLE_X_Y)) + ((this.mapZ + this.compareZ) * DrawableSprite.COMPARABLE_Z) + this.layerId;
 };
 
 DrawableFurniChunk.prototype.draw = function(ctx, auxCtx, cameraX, cameraY) {
+  if (DrawableFurniChunk.DEBUG_FLAG) {
+    console.log(this.baseItem.itemName + "_" + this.getComparableItem());
+    console.log("zIndex: " + this.zIndex);
+    console.log("ActualZ: " + this.mapZ + " CompareZ: " + this.compareZ);
+    console.log("ActualY: " + this.mapY + " CompareY: " + this.compareY);
+    console.log("layerId: " + this.layerId);
+  }
   ctx.globalCompositeOperation = "source-over";
   if (this.additive) {
     ctx.globalCompositeOperation = "lighter";

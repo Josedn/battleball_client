@@ -90,11 +90,10 @@ Player.prototype.getCurrentAvatarSpriteKey = function() {
     action = ["sit", "wav"];
     frame = this.genericFrame % 2;
   }
-  /*if (!this.isWalking() && !this.isWaving() && this.blinkCounter > 3800) {
+  if (!this.isWalking() && !this.isWaving() && this.blinkCounter > 3800) {
     gesture = "eyb";
-    action = ["std"];
     frame = 0;
-  }*/
+  }
   return this.sprites.getAvatarSpriteKey(this.rot, this.rot, action, gesture, frame);
 };
 Player.prototype.currentSprite = function() {

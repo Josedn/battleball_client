@@ -2,7 +2,7 @@ function Connection(messageHandler) {
   this.connected = false;
   var wsImpl = window.WebSocket || window.MozWebSocket;
   // create a new websocket and connect
-  this.ws = new wsImpl('ws://bobba.io:443/');
+  this.ws = new wsImpl('ws://game.bobba.io:443/');
 
   // when data is comming from the server, this metod is called
   this.ws.onmessage = function (evt) {

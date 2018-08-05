@@ -33,6 +33,7 @@ function AvatarSprite(uniqueName, action, type, isSmall, partId, direction, fram
   this.direction = direction;
   this.resDirection = resDirection;
   this.frame = frame;
+  this.resFrame = frame;
   this.color = color;
   this.resourceName = this.getResourceName();
   this.promise = null;
@@ -49,7 +50,7 @@ AvatarSprite.prototype.getResourceName = function() {
   resourceName += "_";
   resourceName += this.resDirection;
   resourceName += "_";
-  resourceName += this.frame;
+  resourceName += this.resFrame;
   return resourceName;
 };
 
@@ -471,7 +472,7 @@ AvatarImager.prototype.generateGeneric = function(avatarImage, canvasCallback, i
         //console.log("Found sprite: " + chunk.getResourceName());
         chunksPromises.push(chunk.downloadAsync());
       } else {
-        let flippedType = this.partsets.partSet[chunk.type]['flipped-set-type'];
+          let flippedType = this.partsets.partSet[chunk.type]['flipped-set-type'];
         if (flippedType != "") {
           chunk.resType = flippedType;
         }
@@ -486,6 +487,27 @@ AvatarImager.prototype.generateGeneric = function(avatarImage, canvasCallback, i
           chunk.resAction = chunk.action;
           //chunk.resType = chunk.type;
           chunk.resDirection = 6 - chunk.direction;
+        }
+        if (this.offsets[chunk.lib].data == null || this.offsets[chunk.lib].data[chunk.getResourceName()] == null || this.offsets[chunk.lib].data[chunk.getResourceName()].flipped) {
+          chunk.resFrame = chunk.frame + 1;
+          chunk.isFlip = false;
+        }
+        if (this.offsets[chunk.lib].data == null || this.offsets[chunk.lib].data[chunk.getResourceName()] == null || this.offsets[chunk.lib].data[chunk.getResourceName()].flipped) {
+          //console.log("Not found again... " + chunk.getResourceName());
+          chunk.isFlip = false;
+          chunk.resFrame = chunk.frame;
+          chunk.resAction = chunk.action;
+          //chunk.resType = chunk.type;
+          if (chunk.direction == 7) {
+            chunk.resDirection = 3;
+          }
+          if (chunk.direction == 3) {
+            chunk.resDirection = 7;
+          }
+        }
+        if (this.offsets[chunk.lib].data == null || this.offsets[chunk.lib].data[chunk.getResourceName()] == null || this.offsets[chunk.lib].data[chunk.getResourceName()].flipped) {
+          chunk.resFrame = chunk.frame + 1;
+          chunk.isFlip = false;
         }
         if (this.offsets[chunk.lib].data == null || this.offsets[chunk.lib].data[chunk.getResourceName()] == null || this.offsets[chunk.lib].data[chunk.getResourceName()].flipped) {
           //console.log("Not found... " + chunk.getResourceName());

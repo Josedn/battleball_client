@@ -20,7 +20,7 @@ Player.prototype.prepare = function(avatarImager) {
   return new Promise((resolve, reject) => {
     var p = this.loadSprites(avatarImager);
     Promise.all(p).then(function (loaded) {
-      updateStatus("Sprites loaded (" + this.name + ")");
+      updateStatus("Player loaded (" + this.id + ")");
       this.ready = true;
       resolve();
     }.bind(this),

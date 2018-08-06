@@ -294,9 +294,9 @@ Room.prototype.drawPlayer = function(player) {
   this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage('shadow_tile'), null, player.x, player.y, this.heightmap[Math.floor(player.x)][Math.floor(player.y)] - 1, 0, 0, shadowPrio));
   var offsetX = (player.rot == 6 || player.rot == 5 || player.rot == 4) ? 3 : 0;
   if (player.ready) {
-    this.drawQueue.queue(new IsometricDrawableSprite(player.currentSprite(), player.currentSilhouette(), player.x, player.y, player.z, offsetX, -85, prio));
+    this.drawQueue.queue(new DrawablePlayer(player.currentSprite(), player.currentSilhouette(), player.x, player.y, player.z, player.seatZ, offsetX, -85, prio));
   } else {
-    this.drawQueue.queue(new IsometricDrawableSprite(this.sprites.getImage(player.getCurrentAvatarSpriteKey()), null, player.x, player.y, player.z, offsetX, -85, prio));
+    this.drawQueue.queue(new DrawablePlayer(this.sprites.getImage(player.getCurrentAvatarSpriteKey()), null, player.x, player.y, player.z, player.seatZ, offsetX, -85, prio));
   }
   if (player.shouldShowSign()) {
     this.drawSign(player);

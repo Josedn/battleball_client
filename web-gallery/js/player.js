@@ -168,6 +168,7 @@ Player.prototype.updateParams = function(x, y, z, rot, name, look) {
   this.targetX = x;
   this.targetY = y;
   this.z = z;
+  this.seatZ = 0;
   this.rot = rot;
   this.name = name;
   this.look = look;
@@ -177,6 +178,7 @@ Player.prototype.updateStatus = function(x, y, z, rot, statusses) {
   this.x = x;
   this.y = y;
   this.z = z;
+  this.seatZ = 0;
   this.rot = rot;
   this.statusses = statusses;
   if (this.statusses.mv != null) {
@@ -184,8 +186,8 @@ Player.prototype.updateStatus = function(x, y, z, rot, statusses) {
     this.setMovement(parseInt(coords[0]), parseInt(coords[1]), parseFloat(coords[2]));
   }
   if (this.statusses.sit != null) {
-    var tempZ = parseFloat(this.statusses.sit);
-    this.z = tempZ;
+    var tempZ = parseFloat(this.statusses.sit) - 1.0;
+    this.seatZ = tempZ;
   }
 };
 

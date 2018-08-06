@@ -335,14 +335,44 @@ IsometricDrawableSprite.prototype.getScreenY = function() {
 };
 
 IsometricDrawableSprite.prototype.getComparableItem = function() {
-  if (this.priority == DrawableSprite.PRIORITY_PLAYER) {
-    return (Math.floor(this.mapX) + Math.floor(this.mapY)) * (DrawableSprite.COMPARABLE_X_Y) + ((this.mapZ + 0.001) * (DrawableSprite.COMPARABLE_Z));
-  }
   return (Math.floor(this.mapX) + Math.floor(this.mapY)) * (DrawableSprite.COMPARABLE_X_Y) + (this.mapZ * (DrawableSprite.COMPARABLE_Z));
 };
 
 IsometricDrawableSprite.prototype.draw = function(ctx, auxCtx, cameraX, cameraY) {
-  if (DrawableFurniChunk.DEBUG_FLAG && this.priority == DrawableSprite.PRIORITY_PLAYER) {
+  if (this.sprite != null) {
+    ctx.globalCompositeOperation = "source-over";
+    ctx.drawImage(this.sprite, cameraX + this.getScreenX(), cameraY + this.getScreenY());
+  }
+  if (this.selectableSprite != null) {
+    auxCtx.drawImage(this.selectableSprite, cameraX + this.getScreenX(), cameraY + this.getScreenY());
+  }
+};
+
+
+function DrawablePlayer(sprite, selectableSprite, mapX, mapY, mapZ, seatZ, offsetX, offsetY, priority) {
+  DrawableSprite.call(this, sprite, selectableSprite, 0, 0, priority);
+  this.mapX = mapX;
+  this.mapY = mapY;
+  this.mapZ = mapZ;
+  this.seatZ = seatZ;
+  this.offsetX = offsetX;
+  this.offsetY = offsetY;
+}
+
+DrawablePlayer.prototype.getScreenX = function() {
+  return (this.mapX - this.mapY) * (Game.TILE_W / 2) + this.offsetX;
+};
+
+DrawablePlayer.prototype.getScreenY = function() {
+  return (this.mapX + this.mapY) * (Game.TILE_H / 2) + this.offsetY - ((this.mapZ + this.seatZ) * Game.TILE_H);
+};
+
+DrawablePlayer.prototype.getComparableItem = function() {
+  return (Math.floor(this.mapX) + Math.floor(this.mapY)) * (DrawableSprite.COMPARABLE_X_Y) + ((this.mapZ + 0.001) * (DrawableSprite.COMPARABLE_Z));
+};
+
+DrawablePlayer.prototype.draw = function(ctx, auxCtx, cameraX, cameraY) {
+  if (DrawableFurniChunk.DEBUG_FLAG) {
     console.log("player_" + this.getComparableItem());
     console.log("x: " + this.mapX);
     console.log("y: " + this.mapY);

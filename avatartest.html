@@ -48,11 +48,8 @@
 
       console.log("ready.");
 
-      Game.avatarImager.generate(new AvatarImage(look, direction, headDirection, action, gesture, frame, isHeadOnly, scale), (img) => {
-        ctx.drawImage(img, 30, 30);
-      });
-
-      Game.avatarImager.generate(new AvatarImage(look, direction, headDirection, "std", gesture, frame, isHeadOnly, scale), (img) => {
+      Game.avatarImager.generate(new AvatarImage(look, direction, headDirection, action, gesture, frame, isHeadOnly, scale)).then((img) => {
+        console.log(img);
         ctx.drawImage(img, 30, 30);
       });
 

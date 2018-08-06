@@ -101,7 +101,7 @@ Sprites.prototype.getAvatarSpriteKey = function(direction, headDirection, action
 
 Sprites.prototype.loadGenericGhost = function(avatarImager, look, direction, headDirection, action, gesture, frame) {
   const p = new Promise((resolve, reject) => {
-    avatarImager.generateGhost(new AvatarImage(look, direction, headDirection, action, gesture, frame, false, "n"), (img) => {
+    avatarImager.generateGhost(new AvatarImage(look, direction, headDirection, action, gesture, frame, false, "n")).then((img) => {
       this.loadLocalImage(this.getAvatarSpriteKey(direction, headDirection, action, gesture, frame), img);
       resolve();
     });
@@ -165,7 +165,7 @@ Sprites.prototype.loadAllGenericGhost = function(avatarImager) {
 
 Sprites.prototype.loadGenericAvatar = function(avatarImager, look, direction, headDirection, action, gesture, frame) {
   const p = new Promise((resolve, reject) => {
-    avatarImager.generate(new AvatarImage(look, direction, headDirection, action, gesture, frame, false, "n"), (img) => {
+    avatarImager.generate(new AvatarImage(look, direction, headDirection, action, gesture, frame, false, "n")).then((img) => {
       this.loadLocalImage(this.getAvatarSpriteKey(direction, headDirection, action, gesture, frame), img);
       resolve();
     });

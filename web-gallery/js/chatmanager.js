@@ -59,7 +59,7 @@ Chat.prototype.prepareSprite = function() {
   tempCtx.fillText(text, 31 + usernameWidth, 5);
 
   if (this.player.headSprite() != null) {
-    tempCtx.drawImage(this.player.headSprite(), -3, -6);
+    tempCtx.drawImage(this.player.headSprite(), -3, -7);
   }
   this.sprite = tempCanvas;
   return tempCanvas;

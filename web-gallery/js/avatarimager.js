@@ -76,6 +76,7 @@ AvatarSprite.prototype.downloadAsync = function() {
 };
 
 function AvatarImage(figure, direction, headDirection, action, gesture, frame, isHeadOnly, scale) {
+  this.isDownsampled = false;
   this.isLarge = false;
   this.isSmall = false;
   this.rectWidth = 64;
@@ -91,6 +92,8 @@ function AvatarImage(figure, direction, headDirection, action, gesture, frame, i
     this.rectWidth = 32;
     this.rectHeight = 55;
     break;
+    case "d":
+    this.isDownsampled = true;
     case "n":
     default:
     break;
@@ -557,10 +560,15 @@ AvatarImager.prototype.generateGeneric = function(avatarImage, isGhost) {
           }
         }
 
+        if (avatarImage.isDownsampled) {
+          tempCanvas = this.downsampleSprite(tempCanvas);
+
+        }
+
         var imgFoo = document.createElement('img');
         imgFoo.src = tempCanvas.toDataURL();
         resolve(imgFoo);
-        
+
       }.bind(this));
     }.bind(this)).catch(() => { reject("Error downloading offsets"); });
   });
@@ -588,6 +596,23 @@ AvatarImager.prototype.flipSprite = function(img) {
   c.save();
   c.scale(-1, 1);
   c.drawImage(img,0,0,width*-1,height);
+  c.restore();
+
+  return element;
+};
+
+AvatarImager.prototype.downsampleSprite = function(img) {
+  let element = document.createElement('canvas');
+  let c = element.getContext("2d");
+
+  let width = img.width;
+  let height = img.height;
+  element.width = width;
+  element.height = height;
+
+  c.save();
+  c.scale(0.5, 0.5);
+  c.drawImage(img,0,0);
   c.restore();
 
   return element;

@@ -37,19 +37,18 @@
 
     Game.avatarImager.initialize().then(() => {
 
-      const look = "sh-725-68.he-3258-1410-92.hr-3012-45.ch-665-110.lg-3006-110-110.hd-600-28";
-      const direction = 4;
+      const look = "hd-190-10.lg-3023-1408.ch-215-91.hr-893-45";
+      const direction = 2;
       const headDirection = direction;
-      const action = ["sit"];
+      const action = ["std"];
       const gesture = ["std"];
       const frame = 0;
-      const isHeadOnly = false;
-      const scale = "n";
+      const isHeadOnly = true;
+      const scale = "d";
 
       console.log("ready.");
 
       Game.avatarImager.generate(new AvatarImage(look, direction, headDirection, action, gesture, frame, isHeadOnly, scale)).then((img) => {
-        console.log(img);
         ctx.drawImage(img, 30, 30);
       });
 

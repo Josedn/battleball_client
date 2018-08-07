@@ -226,9 +226,10 @@ Sprites.prototype.loadAllGenericAvatar = function(look, avatarImager) {
   return Promise.all(promises);
 };
 
-Sprites.prototype.loadHeadAvatar = function(key, look) {
-  var totalUrl = Sprites.EXTERNAL_IMAGER_URL + look + '&direction=2&head_direction=2&size=s&headonly=1';
-  return this.loadImage(key, totalUrl);
+Sprites.prototype.loadHeadAvatar = function(key, look, avatarImager) {
+  return avatarImager.generate(new AvatarImage(look, 2, 2, "std", "std", 0, true, "d")).then((img) => {
+    this.loadLocalImage(key, img);
+  });
 };
 
 Sprites.prototype.generateSilhouette = function(img, r, g, b) {

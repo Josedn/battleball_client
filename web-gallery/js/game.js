@@ -59,6 +59,48 @@ Game.bindActions = function() {
   login_form.onsubmit = () => { onLogin(); return false; };
 };
 
+Game.appendPlayer = function(look, direction, checked) {
+  const players_container = document.getElementById('players');
+  const player_container = document.createElement('div');
+  const player_img = document.createElement('img');
+  const player_input = document.createElement('input');
+
+  player_container.style = "display:inline-block;padding: 10px;";
+
+  player_input.type = "radio";
+  player_input.name="look";
+  player_input.value = look;
+  if (checked) {
+    player_input.checked = "checked";
+  }
+
+  player_container.appendChild(player_img);
+  player_container.appendChild(document.createElement('br'));
+  player_container.appendChild(player_input);
+
+  players_container.appendChild(player_container);
+
+  this.avatarImager.generate(new AvatarImage(look, direction, direction, "wlk", "std", 2, false, "n")).then((img) => {
+    player_img.src = img.src;
+  });
+};
+
+Game.appendPlayers = function() {
+  const selectedId = Math.floor((Math.random() * 5) + 1);
+  let selectId = 0;
+  this.appendPlayer("hd-190-10.lg-3023-1408.ch-215-91.hr-893-45", 2, selectId++ == selectedId);
+  this.appendPlayer("hr-828-1407.sh-3089-110.ha-1013-110.ch-3323-110-92.lg-3058-82.hd-180-10", 2, selectId++ == selectedId);
+  this.appendPlayer("ch-3050-104-62.ea-987462904-62.sh-305-1185.lg-275-1193.hd-185-1.hr-828-1034", 2, true);
+  this.appendPlayer("sh-725-68.he-3258-1410-92.hr-3012-45.ch-665-110.lg-3006-110-110.hd-600-28", 4, selectId++ == selectedId);
+  this.appendPlayer("ha-1003-85.ch-665-92.lg-3328-1338-1338.hd-3105-10.sh-3035-64.hr-3012-1394.ea-3169-110.cc-3008-110-110", 4, selectId++ == selectedId);
+  this.appendPlayer("ca-1811-62.lg-3018-81.hr-836-45.ch-669-1193.hd-600-10", 4, selectId++ == selectedId);
+};
+
+Game.turnJoinButton = function() {
+  var login_button = document.getElementById("login_button");
+  login_button.value = "Join";
+};
+
 Game.run = function(canvas) {
   updateStatus("Loading...");
 
@@ -77,6 +119,8 @@ Game.run = function(canvas) {
   this.bindActions();
 
   this.prepareImagers().then(() => {
+    this.appendPlayers();
+    this.turnJoinButton();
     this.tryConnect();
     window.requestAnimationFrame(this.tick);
   });

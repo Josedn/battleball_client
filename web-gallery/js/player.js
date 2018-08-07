@@ -36,7 +36,7 @@ Player.prototype.prepare = function(avatarImager) {
 Player.prototype.loadSprites = function(avatarImager) {
   return [
     this.sprites.loadAllGenericAvatar(this.look, avatarImager),
-    this.sprites.loadHeadAvatar('head', this.look)
+    this.sprites.loadHeadAvatar('head', this.look, avatarImager)
   ];
 };
 
